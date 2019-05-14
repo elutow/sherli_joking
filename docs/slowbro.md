@@ -8,9 +8,10 @@ This document contains notes from reverse-engineering the `slowbro` library.
 
 Many of the concepts seem to be derived from those presented by the Amazon Skills Kit. This section consists of some concepts that are important to understanding how `slowbro` works that may not obvious from a glance.
 
+* All data is stored in JSON format to DynamoDB. To do this, the relevant objects are serialized to/from JSON format using `to_dict()` and `from_dict()` methods.
 * When the bot connects with a user, a *session* is created (not unlike what is done for Alexa Skills). A session is a collection of *rounds*, which are defined as a *user turn* and a *bot turn*.
 	* A round is started when the user initiates an action, which is either a message or activating the bot; the round ends when the bot submits a response to the user.
-	* Both sessions and rounds can have attributes associated with them, which are simply metadata defined by the bot developer. Currently, round attributes consist of only the last round index.
+	* The data from sessions and rounds are stored as *attributes*. In Labs 1 and 2, round attributes consist of the round index, user message, and bot message.
 	* Rounds are indexed by an incrementing integer, starting with `1`.
 	* Sessions are identified by a string, which are retrieved from `UserMessage` instances.
 	* `slowbro` stores all information about sessions and rounds into DynamoDB.
