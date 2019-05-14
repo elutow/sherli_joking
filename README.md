@@ -24,6 +24,12 @@ Steps before committing:
 1. Run `devutils/process.sh` to fix code formatting and find any linter errors.
 2. Run `devutils/test.sh` to run tests and code coverage utilities.
 
+## Development docs
+
+Various notes and design docs live under `docs/`
+
+* [`docs/slowbro.md`](docs/slowbro.md) - Notes about `slowbro`
+
 ### Updating library requirements
 
 Run `devutils/update_requirements.sh` and commit the changes.
