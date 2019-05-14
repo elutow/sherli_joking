@@ -1,0 +1,8 @@
+hypothesis
+pip-tools
+pylint
+pytest
+pytest-aiohttp
+pytest-asyncio
+pytest-cov
+yapf
