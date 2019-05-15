@@ -5,7 +5,7 @@ import argparse
 import logging
 
 from slowbro.channels.alexaprize import BotBuilder
-from bots.sherlibot.bot import Bot
+from sherlibot.bot import Bot
 
 
 def main():
