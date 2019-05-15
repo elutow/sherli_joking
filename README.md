@@ -13,11 +13,12 @@ git clone git@github.com:elutow/sherli_joking.git
 cd sherli_joking
 pip install -r requirements.txt
 
-# Setup pke
-pip install git+https://github.com/boudinfl/pke.git
-python3 -m nltk.downloader stopwords
-python3 -m nltk.downloader universal_tagset
-python3 -m spacy download en
+# Download corpora for pke and newspaper3k
+python3 download_corpora.py
+
+mkdir config
+# Add News API key
+printf 'API_KEY_HERE' > config/newsapi_key
 
 # TODO: Literally the entire project
 ```

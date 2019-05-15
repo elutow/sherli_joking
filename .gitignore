@@ -1,3 +1,6 @@
 __pycache__/
 /.coverage
 /.mypy_cache
+
+# Ignore local configuration such as API keys
+/config
