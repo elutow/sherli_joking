@@ -4,7 +4,6 @@ from collections.abc import Iterable, Mapping, ByteString, Set
 import numbers
 import decimal
 
-
 logger = logging.getLogger(__file__)
 
 CONTEXT = decimal.Context(
@@ -12,8 +11,8 @@ CONTEXT = decimal.Context(
     Emax=126,
     # rounding=None,
     prec=38,
-    traps=[decimal.Clamped, decimal.Overflow, decimal.Underflow]
-)
+    traps=[decimal.Clamped, decimal.Overflow, decimal.Underflow])
+
 
 def dump_item_to_dynamodb(item: Any) -> Any:
     """Replaces float with Decimal.
@@ -38,7 +37,7 @@ def dump_item_to_dynamodb(item: Any) -> Any:
 
     # ignores inexact, rounding errors
     if isinstance(item, numbers.Number):
-        return CONTEXT.create_decimal(item) # type: ignore
+        return CONTEXT.create_decimal(item)  # type: ignore
 
     # mappings are also Iterable
     data: Any
@@ -111,21 +110,17 @@ def load_item_from_dynamodb(item: Any) -> Any:
     return item
 
 
-def batch_get_items_wrapper(request_items: Dict[str, Dict[str, Dict[str, Any]]],
-                            dynamodb_client: Any) -> Dict[str, List[Dict[str, Any]]]:
+def batch_get_items_wrapper(
+        request_items: Dict[str, Dict[str, Dict[str, Any]]],
+        dynamodb_client: Any) -> Dict[str, List[Dict[str, Any]]]:
     """Retrieves multiple items with retries.
     """
 
     try:
-        output = dynamodb_client.batch_get_item(
-            RequestItems=request_items
-        )
+        output = dynamodb_client.batch_get_item(RequestItems=request_items)
     except:
         # TODO: backoff when throttling
-        logger.warning(
-            'batch retrieve items failed: %s',
-            request_items
-        )
+        logger.warning('batch retrieve items failed: %s', request_items)
         return {}
 
     responses = output.get('Responses', {})

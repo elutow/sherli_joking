@@ -1,7 +1,6 @@
 from typing import Any, Dict, List, Optional
 import logging
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -21,7 +20,6 @@ class AsrHypothesisToken():
         # endOffsetInMilliseconds
         self.end_offset = end_offset
 
-
     def to_dict(self) -> Dict[str, Any]:
         json_obj = {
             'value': self.value,
@@ -31,9 +29,7 @@ class AsrHypothesisToken():
         }
         return json_obj
 
-
-    def from_dict(self,
-                  json_obj: Dict[str, Any]) -> None:
+    def from_dict(self, json_obj: Dict[str, Any]) -> None:
         self.value = json_obj.get('value', '')
         self.confidence = json_obj.get('confidence', 0)
         self.start_offset = json_obj.get('start_offset', -1)
@@ -50,31 +46,21 @@ class AsrHypothesisUtterance():
         self.tokens = tokens
         self.confidence = confidence
 
-
     def __str__(self) -> str:
         if self.tokens is None:
             return ''
 
-        return ' '.join([
-            token.value
-            for token in self.tokens
-        ])
-
+        return ' '.join([token.value for token in self.tokens])
 
     def to_dict(self) -> Dict[str, Any]:
         assert self.tokens is not None
         json_obj = {
-            'tokens': [
-                token.to_dict()
-                for token in self.tokens
-            ],
+            'tokens': [token.to_dict() for token in self.tokens],
             'confidence': self.confidence
         }
         return json_obj
 
-
-    def from_dict(self,
-                  json_obj: Dict[str, Any]) -> None:
+    def from_dict(self, json_obj: Dict[str, Any]) -> None:
         self.tokens = []
         for item in json_obj.get('tokens', []):
             token = AsrHypothesisToken()
@@ -95,9 +81,8 @@ class UserMessage():
                  session_id: str = '',
                  user_id: str = '',
                  text: str = '',
-                 asr_hypos: Optional[List[
-                     AsrHypothesisUtterance
-                 ]] = None) -> None:
+                 asr_hypos: Optional[List[AsrHypothesisUtterance]] = None
+                 ) -> None:
         self.payload = payload
         self.channel = channel
         self.request_id = request_id
@@ -105,7 +90,6 @@ class UserMessage():
         self.user_id = user_id
         self.text = text
         self.asr_hypos = asr_hypos
-
 
     def to_dict(self) -> Dict[str, Any]:
         """Serializes the object."""
@@ -118,15 +102,10 @@ class UserMessage():
         if self.payload:
             json_obj['payload'] = self.payload
         if self.asr_hypos:
-            json_obj['asr_hypos'] = [
-                hypo.to_dict()
-                for hypo in self.asr_hypos
-            ]
+            json_obj['asr_hypos'] = [hypo.to_dict() for hypo in self.asr_hypos]
         return json_obj
 
-
-    def from_dict(self,
-                  json_obj: Dict[str, Any]) -> None:
+    def from_dict(self, json_obj: Dict[str, Any]) -> None:
         """Deserializes the object."""
         self.payload = json_obj.get('payload', None)
         self.channel = json_obj.get('channel', '')
@@ -138,7 +117,6 @@ class UserMessage():
             hypo = AsrHypothesisUtterance()
             hypo.from_dict(item)
             self.asr_hypos.append(hypo)
-
 
     def get_utterance(self) -> str:
         """Gets the utterance.

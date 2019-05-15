@@ -13,11 +13,9 @@ from slowbro.core.bot_base import BotBase
 from slowbro.core.bot_builder_base import BotBuilderBase
 from slowbro.core.slowbro_logger import SlowbroLogger
 
-from .request_handlers import (LaunchRequestHandler,
-                               IntentRequestHandler,
+from .request_handlers import (LaunchRequestHandler, IntentRequestHandler,
                                SessionEndedRequestHandler)
 from .exception_handlers import DefaultExceptionHandler
-
 
 logger = logging.getLogger(__name__)
 
@@ -26,11 +24,7 @@ class AlexaPrizeBotBuilder(BotBuilderBase):
     """The bot builder class for the Alexa Prize channel.
     """
 
-    __slots__ = (
-        '_bot',
-        '_skill_builder',
-        '_skill'
-    )
+    __slots__ = ('_bot', '_skill_builder', '_skill')
 
     def __init__(self,
                  bot: BotBase,
@@ -44,19 +38,14 @@ class AlexaPrizeBotBuilder(BotBuilderBase):
             SessionEndedRequestHandler(self._bot),
         ])
         self._skill_builder.add_exception_handler(
-            DefaultExceptionHandler(self._bot)
-        )
+            DefaultExceptionHandler(self._bot))
 
         self._skill = Skill(
-            skill_configuration=self._skill_builder.skill_configuration
-        )
+            skill_configuration=self._skill_builder.skill_configuration)
 
-        super().__init__(loglevel=loglevel,
-                         logfile=logfile)
+        super().__init__(loglevel=loglevel, logfile=logfile)
 
-
-    async def _lambda_function(self,
-                               event: RequestEnvelope,
+    async def _lambda_function(self, event: RequestEnvelope,
                                context: Any) -> Dict[str, Any]:
         """The AWS Lambda function handler.
 
@@ -65,30 +54,20 @@ class AlexaPrizeBotBuilder(BotBuilderBase):
         """
 
         request_envelope = self._skill.serializer.deserialize(
-            payload=json.dumps(event),
-            obj_type=RequestEnvelope
-        )
+            payload=json.dumps(event), obj_type=RequestEnvelope)
 
         slowbro_logger = SlowbroLogger(
-            logger=logger,
-            request_id=request_envelope.request.request_id
-        )
+            logger=logger, request_id=request_envelope.request.request_id)
 
-        slowbro_logger.info(
-            'Session ID: %s',
-            request_envelope.session.session_id
-        )
+        slowbro_logger.info('Session ID: %s',
+                            request_envelope.session.session_id)
 
         response_envelope = self._skill.invoke(
-            request_envelope=request_envelope,
-            context=context
-        )
+            request_envelope=request_envelope, context=context)
 
         return self._skill.serializer.serialize(response_envelope)
 
-
-    async def _server_handler(self,
-                              req: web.Request) -> web.Response:
+    async def _server_handler(self, req: web.Request) -> web.Response:
         """The server handler.
 
         For Alexa Skill, the response Status code is always 200 unless exception

@@ -15,39 +15,26 @@ from .utils import build_response
 
 logger = logging.getLogger(__name__)
 
+
 class LaunchRequestHandler(AbstractRequestHandler):
     """Handler for LaunchRequest.
     """
 
-    def __init__(self,
-                 bot: BotBase) -> None:
+    def __init__(self, bot: BotBase) -> None:
         self._bot = bot
         super().__init__()
 
-
-    def can_handle(self,
-                   handler_input: HandlerInput) -> bool:
+    def can_handle(self, handler_input: HandlerInput) -> bool:
         return is_request_type("LaunchRequest")(handler_input)
 
+    def handle(self, handler_input: HandlerInput) -> Response:
 
-    def handle(self,
-               handler_input: HandlerInput) -> Response:
+        (user_message, _) = parse_handler_input(handler_input)
 
-        (
-            user_message,
-            _
-        ) = parse_handler_input(handler_input)
+        (bot_message, ser_session_attributes) = self._bot.handle_message(
+            user_message, dict())
 
-        (
-            bot_message,
-            ser_session_attributes
-        ) = self._bot.handle_message(
-            user_message,
-            dict()
-        )
-
-        build_response(bot_message,
-                       handler_input.response_builder)
+        build_response(bot_message, handler_input.response_builder)
 
         attributes_manager = handler_input.attributes_manager
         attributes_manager.session_attributes = ser_session_attributes
@@ -59,35 +46,22 @@ class IntentRequestHandler(AbstractRequestHandler):
     """Handler for IntentRequest.
     """
 
-    def __init__(self,
-                 bot: BotBase) -> None:
+    def __init__(self, bot: BotBase) -> None:
         self._bot = bot
         super().__init__()
 
-
-    def can_handle(self,
-                   handler_input: HandlerInput) -> bool:
+    def can_handle(self, handler_input: HandlerInput) -> bool:
         return is_request_type("IntentRequest")(handler_input)
 
+    def handle(self, handler_input: HandlerInput) -> Response:
 
-    def handle(self,
-               handler_input: HandlerInput) -> Response:
+        (user_message,
+         ser_session_attributes) = parse_handler_input(handler_input)
 
-        (
-            user_message,
-            ser_session_attributes
-        ) = parse_handler_input(handler_input)
+        (bot_message, ser_session_attributes) = self._bot.handle_message(
+            user_message, ser_session_attributes)
 
-        (
-            bot_message,
-            ser_session_attributes
-        ) = self._bot.handle_message(
-            user_message,
-            ser_session_attributes
-        )
-
-        build_response(bot_message,
-                       handler_input.response_builder)
+        build_response(bot_message, handler_input.response_builder)
 
         attributes_manager = handler_input.attributes_manager
         attributes_manager.session_attributes = ser_session_attributes
@@ -102,19 +76,14 @@ class SessionEndedRequestHandler(AbstractRequestHandler):
     https://developer.amazon.com/docs/custom-skills/request-types-reference.html#sessionendedrequest
     """
 
-    def __init__(self,
-                 bot: BotBase) -> None:
+    def __init__(self, bot: BotBase) -> None:
         self._bot = bot
         super().__init__()
 
-
-    def can_handle(self,
-                   handler_input: HandlerInput) -> bool:
+    def can_handle(self, handler_input: HandlerInput) -> bool:
         return is_request_type("SessionEndedRequest")(handler_input)
 
-
-    def handle(self,
-               handler_input: HandlerInput) -> Response:
+    def handle(self, handler_input: HandlerInput) -> Response:
         """Returns an empty response.
 
         The skill cannot return a response to SessionEndedRequest.
@@ -122,13 +91,10 @@ class SessionEndedRequestHandler(AbstractRequestHandler):
 
         slowbro_logger = SlowbroLogger(
             logger=logger,
-            request_id=handler_input.request_envelope.request.request_id
-        )
+            request_id=handler_input.request_envelope.request.request_id)
 
-        slowbro_logger.info(
-            'Session ended with reason: %s',
-            handler_input.request_envelope.request.reason
-        )
+        slowbro_logger.info('Session ended with reason: %s',
+                            handler_input.request_envelope.request.reason)
 
         # TODO: collect warnings for reason=='ERROR'
 

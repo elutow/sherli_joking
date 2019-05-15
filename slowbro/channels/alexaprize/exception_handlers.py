@@ -16,27 +16,21 @@ class DefaultExceptionHandler(AbstractExceptionHandler):
     """Handler for exceptions.
     """
 
-    def __init__(self,
-                 bot: BotBase) -> None:
+    def __init__(self, bot: BotBase) -> None:
         self._bot = bot
         super().__init__()
 
-
-    def can_handle(self,
-                   handler_input: HandlerInput,
+    def can_handle(self, handler_input: HandlerInput,
                    exception: Exception) -> bool:
         return True
 
-
-    def handle(self,
-               handler_input: HandlerInput,
+    def handle(self, handler_input: HandlerInput,
                exception: Exception) -> Response:
 
         traceback.print_exc()
 
         handler_input.response_builder.speak(
-            "Something went wrong"
-        ).set_should_end_session(True)
+            "Something went wrong").set_should_end_session(True)
 
         # (
         #     user_message,

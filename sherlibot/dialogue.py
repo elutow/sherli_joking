@@ -5,6 +5,7 @@ import enum
 
 from .utils import AutoName
 
+
 @enum.unique
 class DialogueStates(AutoName):
     """States for dialogue control"""

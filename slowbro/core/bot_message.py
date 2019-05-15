@@ -5,7 +5,6 @@ class BotMessage():
     """Bot Message container.
     """
 
-
     def __init__(self,
                  response_ssml: Optional[str] = None,
                  reprompt_ssml: Optional[str] = None,
@@ -17,7 +16,6 @@ class BotMessage():
         self.card_title = card_title
         self.card_content = card_content
         self.should_end_session = should_end_session
-
 
     def to_dict(self) -> Dict[str, Any]:
         json_obj: Dict[str, Any] = {}
@@ -32,23 +30,10 @@ class BotMessage():
         json_obj['should_end_session'] = self.should_end_session
         return json_obj
 
-
-    def from_dict(self,
-                  json_obj: Dict[str, Any]) -> None:
-        self.response_ssml = json_obj.get(
-            'response_ssml',
-            None
-        )
-        self.reprompt_ssml = json_obj.get(
-            'reprompt_ssml',
-            None
-        )
-        self.card_title = json_obj.get(
-            'card_title',
-            None
-        )
-        self.card_content = json_obj.get(
-            'card_content',
-            None
-        )
-        self.should_end_session = bool(json_obj.get('should_end_session', False))
+    def from_dict(self, json_obj: Dict[str, Any]) -> None:
+        self.response_ssml = json_obj.get('response_ssml', None)
+        self.reprompt_ssml = json_obj.get('reprompt_ssml', None)
+        self.card_title = json_obj.get('card_title', None)
+        self.card_content = json_obj.get('card_content', None)
+        self.should_end_session = bool(
+            json_obj.get('should_end_session', False))
