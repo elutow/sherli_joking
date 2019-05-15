@@ -1,5 +1,4 @@
 aiohttp
-aiojobs
 ask-sdk
 cachetools
-uvloop
+requests

@@ -6,11 +6,18 @@ Conversational AI (EE 596D) Project
 
 ```sh
 # Create a virtual environment for libraries
-virtualenv --system-site-packages -p python3  sherli_venv
+virtualenv --system-site-packages -p python3 sherli_venv
 source sherli_venv/bin/activate
 
 git clone git@github.com:elutow/sherli_joking.git
+cd sherli_joking
 pip install -r requirements.txt
+
+# Setup pke
+pip install git+https://github.com/boudinfl/pke.git
+python3 -m nltk.downloader stopwords
+python3 -m nltk.downloader universal_tagset
+python3 -m spacy download en
 
 # TODO: Literally the entire project
 ```
@@ -33,6 +40,10 @@ Various notes and design docs live under `docs/`
 ### Updating library requirements
 
 Run `devutils/update_requirements.sh` and commit the changes.
+
+## Credits
+
+TODO
 
 ## Licenses
 
