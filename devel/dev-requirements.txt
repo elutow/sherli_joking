@@ -14,7 +14,7 @@ click==7.0                # via pip-tools
 coverage==4.5.3           # via pytest-cov
 hypothesis==4.23.4
 idna==2.8                 # via yarl
-isort==4.3.19             # via pylint
+isort==4.3.20             # via pylint
 lazy-object-proxy==1.4.1  # via astroid
 mccabe==0.6.1             # via pylint
 more-itertools==7.0.0     # via pytest

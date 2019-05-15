@@ -3,5 +3,5 @@
 set -eux
 
 cd $(dirname $(dirname $(readlink -f $0)))
-yapf -ipr src tests
-pylint src tests
+yapf -ipr sherlibot slowbro sherli_server.py tests
+pylint sherlibot slowbro sherli_server.py tests
