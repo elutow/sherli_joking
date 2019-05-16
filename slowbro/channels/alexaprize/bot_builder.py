@@ -7,7 +7,6 @@ import logging
 
 from aiohttp import web
 from ask_sdk_core.skill_builder import SkillBuilder
-from ask_sdk_core.skill import Skill
 from ask_sdk_model import RequestEnvelope
 from slowbro.core.bot_base import BotBase
 from slowbro.core.bot_builder_base import BotBuilderBase
@@ -32,16 +31,16 @@ class AlexaPrizeBotBuilder(BotBuilderBase):
                  logfile: Optional[str] = None) -> None:
         self._bot = bot
         self._skill_builder = SkillBuilder()
-        self._skill_builder.request_handlers.extend([
-            LaunchRequestHandler(self._bot),
-            IntentRequestHandler(self._bot),
-            SessionEndedRequestHandler(self._bot),
-        ])
+        self._skill_builder.runtime_configuration_builder.add_request_handlers(
+            [
+                LaunchRequestHandler(self._bot),
+                IntentRequestHandler(self._bot),
+                SessionEndedRequestHandler(self._bot),
+            ])
         self._skill_builder.add_exception_handler(
             DefaultExceptionHandler(self._bot))
 
-        self._skill = Skill(
-            skill_configuration=self._skill_builder.skill_configuration)
+        self._skill = self._skill_builder.create()
 
         super().__init__(loglevel=loglevel, logfile=logfile)
 

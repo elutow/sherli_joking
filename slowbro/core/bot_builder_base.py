@@ -11,11 +11,16 @@ def _configure_logging(loglevel: int, logfile: Optional[str]) -> None:
     # NOTE: using logfile_ to deal with the following mypy error
     # Argument "filename" to "basicConfig" has incompatible type
     # "Optional[str]"; expected "str"
+    # Close existing handlers and create new ones
+    for handler in logging.root.handlers:
+        handler.close()
+    logging.root.handlers = list()
     if logfile:
         logfile_: str = logfile
         logging.basicConfig(filename=logfile_, level=loglevel)
     else:
         logging.basicConfig(level=loglevel)
+    logger.debug('Initialized logger')
 
     logging.captureWarnings(True)
 
@@ -51,10 +56,8 @@ class BotBuilderBase(ABC):
     async def _lambda_function(self, event: Any, context: Any):
         """The AWS Lambda function handler.
         """
-        pass
 
     @abstractmethod
     async def _server_handler(self, req: web.Request) -> web.Response:
         """The server handler.
         """
-        pass

@@ -43,7 +43,6 @@ class BotBase(ABC):
             ser_session_attributes: Dict[str, Any]
     ) -> Tuple[int, Dict[str, Any], BotMessage, Dict[str, Any]]:
         """Implementation of the message handling logic."""
-        pass
 
     def handle_exception(self, user_message: UserMessage,
                          ser_session_attributes: Dict[str, Any],

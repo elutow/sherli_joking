@@ -22,6 +22,10 @@ class Bot(BotBase):
                  dynamodb_endpoint_url: str) -> None:
         """Constructor."""
 
+        # TODO: Move local session data to DynamoDb
+        # session_id -> SessionAttributes
+        self._local_session_attributes = dict()
+
         round_saver_adapter = DynamoDbRoundSaverAdapter(
             table_name=dynamodb_table_name, endpoint_url=dynamodb_endpoint_url)
         super().__init__(round_saver_adapter=round_saver_adapter, )
@@ -40,9 +44,12 @@ class Bot(BotBase):
         # =====================
         bot_message = BotMessage()
 
-        session_attributes = SessionAttributes()
-        if ser_session_attributes:
-            session_attributes.from_dict(ser_session_attributes)
+        # TODO: Determine what to do with session attributes from ASK
+        #session_attributes = SessionAttributes()
+        #if ser_session_attributes:
+        #    session_attributes.from_dict(ser_session_attributes)
+        session_attributes = self._local_session_attributes.setdefault(
+            user_message.session_id, SessionAttributes())
 
         current_state: DialogueStates = session_attributes.next_dialogue_state
 
@@ -71,8 +78,8 @@ class Bot(BotBase):
                 next_state = dialogue_states.find_article.entrypoint(
                     session_attributes, round_attributes)
             elif current_state == DialogueStates.QNA:
-                # TODO
-                pass
+                next_state = dialogue_states.qna.entrypoint(
+                    session_attributes, round_attributes)
             else:
                 raise NotImplementedError(f'Unknown state: {current_state}')
             # queries the RASA-NLU server
@@ -101,7 +108,9 @@ class Bot(BotBase):
         # =====================
         session_attributes.next_round_index = round_attributes.round_index + 1
         session_attributes.next_dialogue_state = next_state
-        ser_session_attributes = session_attributes.to_dict()
+        # TODO: Determine what to do with session attributes from ASK
+        #ser_session_attributes = session_attributes.to_dict()
+        ser_session_attributes = dict()
 
         return (round_attributes.round_index, ser_round_attributes,
                 round_attributes.bot_message, ser_session_attributes)
