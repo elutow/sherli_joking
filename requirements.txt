@@ -35,11 +35,12 @@ lxml==4.3.3               # via newspaper3k
 multidict==4.5.2          # via aiohttp, yarl
 murmurhash==1.0.2         # via spacy, thinc
 networkx==2.3
+git+https://github.com/elutow/newsapi-python.git@498b1a0550dd1fe1e097a8ba1494a63cd0eadefd
 newspaper3k==0.2.8
 nltk==3.4.1               # via newspaper3k
 numpy==1.16.3             # via blis, scikit-learn, scipy, spacy, thinc
 pillow==6.0.0             # via newspaper3k
-git+https://github.com/boudinfl/pke.git@215f3c2d9b6768bb0fdb28c30105b6cc7e09946b#egg=pke
+git+https://github.com/boudinfl/pke.git@215f3c2d9b6768bb0fdb28c30105b6cc7e09946b
 plac==0.9.6               # via spacy, thinc
 preshed==2.0.1            # via spacy, thinc
 pyrsistent==0.15.2        # via jsonschema
