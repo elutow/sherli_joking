@@ -1,4 +1,5 @@
 aiohttp
+allennlp
 ask-sdk
 cachetools
 git+https://github.com/boudinfl/pke.git@215f3c2d9b6768bb0fdb28c30105b6cc7e09946b
