@@ -1,43 +1,17 @@
 from typing import Dict, Any, Tuple
-import os
 import logging
-
-import pke
 
 from slowbro.core.bot_base import BotBase
 from slowbro.core.round_saver import DynamoDbRoundSaverAdapter
 from slowbro.core.user_message import UserMessage
 from slowbro.core.bot_message import BotMessage
 
-from .rasa_nlu_annotate import rasa_nlu_annotate
 from .session_attributes import SessionAttributes
 from .round_attributes import RoundAttributes
 from .dialogue import DialogueStates
+from . import dialogue_states
 
-logger = logging.getLogger(__file__)
-
-
-def _update_session_attributes(round_attributes: RoundAttributes
-                               ) -> SessionAttributes:
-    """Updates the session attributes.
-
-    Because the session attributes are created from the round attributes, we do
-    NOT need to save the session attributes separately to DynamoDB.
-    """
-    session_attributes = SessionAttributes(
-        dialogue_state=next_state, round_index=round_attributes.round_index)
-
-    return session_attributes
-
-
-def _extract_topics_from_utterance(utterance: str) -> Tuple[str]:
-    """Extract keyphrases from utterance"""
-    extractor = pke.unsupervised.TopicRank()
-    extractor.load_document(input=utterance, language='en')
-    extractor.candidate_selection()
-    extractor.candidate_weighting()
-    keyphrases: List[Tuple[str, float]] = extractor.get_n_best()
-    return tuple(x for x, _ in keyphrases)
+_LOGGER = logging.getLogger(__file__)
 
 
 class Bot(BotBase):
@@ -61,21 +35,22 @@ class Bot(BotBase):
         Incrementally populates the round_attributes.
         """
 
+        # =====================
+        # Step 1: Initialization
+        # =====================
+        bot_message = BotMessage()
+
         session_attributes = SessionAttributes()
         if ser_session_attributes:
             session_attributes.from_dict(ser_session_attributes)
 
-        # =====================
-        # Step 1: Initialization
-        # =====================
-        if session_attributes.round_index is None:
-            raise Exception('undefined round_index in session_attributes')
+        current_state: DialogueStates = session_attributes.next_dialogue_state
 
-        # restores the session data
-        # if session_attributes.round_index > 0:
-
-        bot_message = BotMessage()
-        current_state: DialogueStates = session_attributes.dialogue_state
+        round_attributes = RoundAttributes(
+            round_index=session_attributes.next_round_index,
+            dialogue_state=current_state,
+            user_message=user_message,
+            bot_message=bot_message)
 
         # =====================
         # Step 2: Generates the bot response
@@ -93,13 +68,9 @@ class Bot(BotBase):
                 # Choice of state is arbitrary
                 next_state = DialogueStates.INIT
             elif current_state == DialogueStates.FIND_ARTICLE:
-                keyphrases: Tuple[str] = _extract_topics_from_utterance(
-                    user_utterance)
-                # TODO: Query news API
-            elif current_state == DialogueStates.PICK_ARTICLE:
-                # TODO
-                pass
-            elif current_state == DialogueStates.QA:
+                next_state = dialogue_states.find_article.entrypoint(
+                    session_attributes, round_attributes)
+            elif current_state == DialogueStates.QNA:
                 # TODO
                 pass
             else:
@@ -123,19 +94,13 @@ class Bot(BotBase):
         # =====================
         # Step 3: Stores round attributes
         # =====================
-        round_attributes = RoundAttributes(
-            # increment the round index
-            round_index=session_attributes.round_index + 1,
-            dialogue_state=next_state,
-            user_message=user_message,
-            bot_message=bot_message)
         ser_round_attributes = round_attributes.to_dict()
-        del ser_round_attributes['round_index']
 
         # =====================
         # Step 6: Finalizes session attributes
         # =====================
-        session_attributes = _update_session_attributes(round_attributes)
+        session_attributes.next_round_index = round_attributes.round_index + 1
+        session_attributes.next_dialogue_state = next_state
         ser_session_attributes = session_attributes.to_dict()
 
         return (round_attributes.round_index, ser_round_attributes,
