@@ -112,9 +112,9 @@ def extractnews(usersentence,inputcatvar,excatvar):
 
 
     # Configure API key authorization: app_id
-    aylien_news_api.configuration.api_key['X-AYLIEN-NewsAPI-Application-ID'] = 'c67c6aac'
+    aylien_news_api.configuration.api_key['X-AYLIEN-NewsAPI-Application-ID'] = '8402043d'
     # Configure API key authorization: app_key
-    aylien_news_api.configuration.api_key['X-AYLIEN-NewsAPI-Application-Key'] = '0223546f7c5d669df103843cbec1833f'
+    aylien_news_api.configuration.api_key['X-AYLIEN-NewsAPI-Application-Key'] = '10ebc45e35c0c1b6cc32391f5ba5f20d'
 
     # create an instance of the API class
     api_instance = aylien_news_api.DefaultApi()
@@ -143,6 +143,7 @@ def extractnews(usersentence,inputcatvar,excatvar):
 
     titlelist = []
     summarylist = []
+    sourcelist = []
     ctrvar = 1
     ctrlimit = 5
 
@@ -159,8 +160,9 @@ def extractnews(usersentence,inputcatvar,excatvar):
             #print(story.summary)
             titlelist.append(title)
             summarylist.append(summary.sentences)
+            sourcelist.append(source)
 
-    return(titlelist,summarylist)
+    return(titlelist,summarylist,sourcelist)
 
 
 
@@ -190,6 +192,6 @@ def readingcomprefn( summarylist, userquestion, summaryindex):
 #summaryindex = 0
 #userquestion = "Who is the crown prince?"
 
-#titlelist, summarylist = extractnews(usersentence,inputcatvar,excatvar)
+#titlelist, summarylist, sourcelist = extractnews(usersentence,inputcatvar,excatvar)
 #answer = readingcomprefn(summarylist, userquestion, summaryindex)
 
