@@ -1,4 +1,4 @@
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, Optional
 import logging
 
 from slowbro.core.bot_base import BotBase
@@ -6,12 +6,63 @@ from slowbro.core.round_saver import DynamoDbRoundSaverAdapter
 from slowbro.core.user_message import UserMessage
 from slowbro.core.bot_message import BotMessage
 
-from .session_attributes import SessionAttributes
+from .session_attributes import SessionAttributes, SubstateMemory
 from .round_attributes import RoundAttributes
-from .dialogue import DialogueStates
+from .dialogue import DialogueStates, DialogueStateResult
 from . import dialogue_states
 
 _LOGGER = logging.getLogger(__file__)
+
+
+def _generate_bot_response(user_message: UserMessage, state: DialogueStates,
+                           session_attributes: SessionAttributes
+                           ) -> Tuple[BotMessage, DialogueStates]:
+    """
+    Accepts a user's utterance for a new turn and returns a response
+
+    The internal state machine will follow next states until a valid BotMessage
+        is returned by a state.
+
+    Returns BotMessage for the response, and a DialogueStates value
+        for the dialogue state in the next turn.
+    """
+    bot_message: Optional[BotMessage] = None
+    while bot_message is None:
+        if state == DialogueStates.INIT:
+            bot_message = BotMessage()
+            bot_message.response_ssml = 'Hi, this is Sherli. What news would you like?'
+            bot_message.reprompt_ssml = 'What topics are you interested in?'
+            state = DialogueStates.FIND_ARTICLE
+        else:
+            user_utterance = user_message.get_utterance()
+            if user_utterance in ('stop', 'halt', 'quit', 'exit'):
+                bot_message = BotMessage()
+                bot_message.should_end_session = True
+            else:
+                state_result: DialogueStateResult
+                if (session_attributes.substate_memory.state
+                        and session_attributes.substate_memory.state != state):
+                    session_attributes.substate_memory = SubstateMemory()
+                memory_dict: Optional[
+                    Dict[str, Any]] = session_attributes.substate_memory.memory
+                if state == DialogueStates.FIND_ARTICLE:
+                    state_result = dialogue_states.find_article.entrypoint(
+                        user_message, session_attributes, memory_dict)
+                elif state == DialogueStates.LIST_ARTICLES:
+                    state_result = dialogue_states.list_articles.entrypoint(
+                        user_message, session_attributes, memory_dict)
+                elif state == DialogueStates.QNA:
+                    state_result = dialogue_states.qna.entrypoint(
+                        user_message, session_attributes, memory_dict)
+                else:
+                    raise NotImplementedError(f'Unknown state: {state}')
+                bot_message = state_result.bot_message
+                state = state_result.next_state
+                session_attributes.substate_memory = SubstateMemory(
+                    state=state, memory=state_result.memory_dict)
+    # Ensure a break statement didn't get us here
+    assert bot_message is not None
+    return bot_message, state
 
 
 class Bot(BotBase):
@@ -21,6 +72,11 @@ class Bot(BotBase):
     def __init__(self, dynamodb_table_name: str,
                  dynamodb_endpoint_url: str) -> None:
         """Constructor."""
+
+        # Initialize dialogue management utilities if not already initialized
+        dialogue_states.find_article.initialize()
+        dialogue_states.list_articles.initialize()
+        dialogue_states.qna.initialize()
 
         # TODO: Move local session data to DynamoDb
         # session_id -> SessionAttributes
@@ -42,65 +98,27 @@ class Bot(BotBase):
         # =====================
         # Step 1: Initialization
         # =====================
-        bot_message = BotMessage()
-
-        # TODO: Determine what to do with session attributes from ASK
-        #session_attributes = SessionAttributes()
-        #if ser_session_attributes:
-        #    session_attributes.from_dict(ser_session_attributes)
         session_attributes = self._local_session_attributes.setdefault(
             user_message.session_id, SessionAttributes())
 
         current_state: DialogueStates = session_attributes.next_dialogue_state
 
-        round_attributes = RoundAttributes(
-            round_index=session_attributes.next_round_index,
-            dialogue_state=current_state,
-            user_message=user_message,
-            bot_message=bot_message)
-
         # =====================
         # Step 2: Generates the bot response
         # =====================
         next_state: DialogueStates
-        bot_message.should_end_session = False
-        if current_state == DialogueStates.INIT:
-            bot_message.response_ssml = 'Hi, this is Sherli. What news would you like?'
-            bot_message.reprompt_ssml = 'What topics are you interested in?'
-            next_state = DialogueStates.FIND_ARTICLE
-        else:
-            user_utterance = user_message.get_utterance()
-            if user_utterance == 'stop':
-                bot_message.should_end_session = True
-                # Choice of state is arbitrary
-                next_state = DialogueStates.INIT
-            elif current_state == DialogueStates.FIND_ARTICLE:
-                next_state = dialogue_states.find_article.entrypoint(
-                    session_attributes, round_attributes)
-            elif current_state == DialogueStates.QNA:
-                next_state = dialogue_states.qna.entrypoint(
-                    session_attributes, round_attributes)
-            else:
-                raise NotImplementedError(f'Unknown state: {current_state}')
-            # queries the RASA-NLU server
-            #rasa_nlu_response = rasa_nlu_annotate(
-            #    text=user_utterance,
-            #    rasa_nlu_url='http://localhost:5000',
-            #    project='current',
-            #    model=None
-            #)
-            #bot_message.response_ssml = 'The recognized intent is {} with confidence score {}.'.format(
-            #    rasa_nlu_response.intent.name,
-            #    rasa_nlu_response.intent.confidence
-            #)
-            #bot_message.reprompt_ssml = 'There are {} recognized entities.'.format(
-            #    len(rasa_nlu_response.entities)
-            #)
-            #bot_message.should_end_session = False
+        bot_message: BotMessage
+        bot_message, next_state = _generate_bot_response(
+            user_message, current_state, session_attributes)
 
         # =====================
         # Step 3: Stores round attributes
         # =====================
+        round_attributes = RoundAttributes(
+            round_index=session_attributes.next_round_index,
+            user_message=user_message,
+            bot_message=bot_message)
+
         ser_round_attributes = round_attributes.to_dict()
 
         # =====================
@@ -108,9 +126,8 @@ class Bot(BotBase):
         # =====================
         session_attributes.next_round_index = round_attributes.round_index + 1
         session_attributes.next_dialogue_state = next_state
-        # TODO: Determine what to do with session attributes from ASK
-        #ser_session_attributes = session_attributes.to_dict()
-        ser_session_attributes = dict()
+        # We do not send session attributes to ASK due to its size
+        ser_session_attributes = None
 
         return (round_attributes.round_index, ser_round_attributes,
                 round_attributes.bot_message, ser_session_attributes)

@@ -3,8 +3,6 @@ from typing import Dict, Any, Optional
 from slowbro.core.user_message import UserMessage
 from slowbro.core.bot_message import BotMessage
 
-from .dialogue import DialogueStates
-
 
 class RoundAttributes():
     """Round attributes.
@@ -14,12 +12,9 @@ class RoundAttributes():
 
     def __init__(self,
                  round_index: int = 0,
-                 dialogue_state: DialogueStates = DialogueStates.INIT,
                  user_message: Optional[UserMessage] = None,
                  bot_message: Optional[BotMessage] = None) -> None:
         self.round_index = round_index
-        # Next state for dialogue management
-        self.dialogue_state = dialogue_state
         self.user_message = user_message
         self.bot_message = bot_message
 
@@ -33,13 +28,10 @@ class RoundAttributes():
         if 'bot_message' in json_obj:
             self.bot_message = BotMessage()
             self.bot_message.from_dict(json_obj.get('bot_message', {}))
-        self.dialogue_state = DialogueStates(
-            json_obj.get('dialogue_state', DialogueStates.INIT.value))
 
     def to_dict(self) -> Dict[str, Any]:
         json_obj: Dict[str, Any] = {
             'round_index': self.round_index,
-            'dialogue_state': self.dialogue_state.value,
         }
         if self.user_message is not None:
             json_obj['user_message'] = self.user_message.to_dict()
