@@ -4,12 +4,9 @@
 from hypothesis import given, strategies
 
 from sherlibot.round_attributes import RoundAttributes
-from sherlibot.dialogue import DialogueStates
 
-# TODO: Random values for user_message, bot_message
-RoundAttributesStrategy = strategies.builds(
-    RoundAttributes,
-    round_index=strategies.integers())
+RoundAttributesStrategy = strategies.builds(RoundAttributes,
+                                            round_index=strategies.integers())
 
 
 @given(RoundAttributesStrategy)
