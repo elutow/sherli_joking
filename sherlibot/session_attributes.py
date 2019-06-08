@@ -5,6 +5,8 @@ from newspaper import Article
 
 from .dialogue import DialogueStates
 
+TESTING_URL = '_testing'
+
 SubstateMemory = namedtuple('SubstateMemory', ('state', 'memory'),
                             defaults=(None, None))
 ProcessedArticle = namedtuple(
@@ -68,6 +70,10 @@ class SessionAttributes():
     def update_current_article(self) -> None:
         """Updates current_article with article details"""
         chosen_article = self.queried_articles[self.current_article_index]
+        if chosen_article['url'] == TESTING_URL:
+            # Testing mode; assume current article is already present
+            return
+        #pragma: no cover
         article_parser = Article(chosen_article['url'])
         article_parser.download()
         article_parser.parse()

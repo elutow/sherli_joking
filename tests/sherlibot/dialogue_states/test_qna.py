@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test sherlibot.session_attributes"""
+"""Test sherlibot.dialogue_states.qna"""
 
 import logging
 

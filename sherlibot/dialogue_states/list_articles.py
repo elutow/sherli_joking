@@ -42,7 +42,7 @@ class ListArticleMemory:
         }
 
 
-def initialize() -> None:
+def initialize() -> None:  #pragma: no cover
     """Initialize one-time modular services and utilities"""
     global _INITIALIZED, _LOGGER  #pylint: disable=global-statement
     if _INITIALIZED:
