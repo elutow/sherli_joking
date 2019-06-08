@@ -18,10 +18,9 @@ class SessionAttributes():
     def __init__(self,
                  search_topics: Optional[List[str]] = None,
                  queried_articles: Optional[List[Dict[str, Any]]] = None,
-                 current_article: Optional[Dict[str, Any]] = None,
+                 current_article: Optional[ProcessedArticle] = None,
                  current_article_index: int = 0,
-                 substate_memory: SubstateMemory = SubstateMemory(state=None,
-                                                                  memory=None),
+                 substate_memory: SubstateMemory = SubstateMemory(),
                  next_round_index: int = 0,
                  next_dialogue_state: DialogueStates = DialogueStates.INIT
                  ) -> None:
@@ -84,10 +83,14 @@ class SessionAttributes():
         )
 
     def to_dict(self) -> Dict[str, Any]:
+        if self.current_article:
+            current_article = self.current_article._asdict()
+        else:
+            current_article = None
         json_obj: Dict[str, Any] = {
             'search_topics': self.search_topics,
             'queried_articles': self.queried_articles,
-            'current_article': self.current_article._asdict(),
+            'current_article': current_article,
             '_current_article_index': self._current_article_index,
             'substate_memory': self.substate_memory._asdict(),
             'next_dialogue_state': self.next_dialogue_state.value,
@@ -99,7 +102,7 @@ class SessionAttributes():
     def from_dict(self, json_obj: Dict[str, Any]) -> None:
         self.search_topics = json_obj.get('search_topics', list())
         self.queried_articles = json_obj.get('queried_articles', None)
-        if 'current_article' in json_obj:
+        if json_obj.get('current_article'):
             self.current_article = ProcessedArticle(
                 **json_obj['current_article'])
         else:
