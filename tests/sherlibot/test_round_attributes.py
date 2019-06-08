@@ -7,10 +7,8 @@ from sherlibot.round_attributes import RoundAttributes
 from sherlibot.dialogue import DialogueStates
 
 # TODO: Random values for user_message, bot_message
-DialogueStatesStrategy = strategies.from_type(DialogueStates)
 RoundAttributesStrategy = strategies.builds(
     RoundAttributes,
-    dialogue_state=DialogueStatesStrategy,
     round_index=strategies.integers())
 
 

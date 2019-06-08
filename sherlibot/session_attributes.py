@@ -1,13 +1,12 @@
 from collections import namedtuple
 from typing import Dict, Any, List, Optional
-import itertools
 
 from newspaper import Article
 
 from .dialogue import DialogueStates
 
 SubstateMemory = namedtuple('SubstateMemory', ('state', 'memory'),
-                            defaults=itertools.repeat(None))
+                            defaults=(None, None))
 ProcessedArticle = namedtuple(
     'ProcessedArticle', ('title', 'source', 'text', 'keywords', 'summary'))
 
