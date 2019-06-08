@@ -74,8 +74,8 @@ def entrypoint(user_message: UserMessage,
             "Here's an article from {}: {}. Do you want to hear more?").format(
                 session_attributes.article_candidate['source']['name'],
                 session_attributes.article_candidate['title'])
-        _LOGGER.debug("Article title: {}".format(
-            session_attributes.article_candidate['title']))
+        _LOGGER.debug("Article title: %s",
+                      session_attributes.article_candidate['title'])
         memory.sub_state = ListArticleStates.CONFIRM_ARTICLE
         return DialogueStateResult(DialogueStates.LIST_ARTICLES,
                                    bot_message=bot_message,

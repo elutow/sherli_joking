@@ -42,7 +42,7 @@ class QnaMemory:
         }
 
 
-def initialize() -> None:
+def initialize() -> None:  #pragma: no cover
     """Initialize one-time modular services and utilities"""
     global _INITIALIZED, _PREDICTOR, _LOGGER  #pylint: disable=global-statement
     if _INITIALIZED:
@@ -79,7 +79,7 @@ def entrypoint(user_message: UserMessage,
                                    memory_dict=memory.to_dict())
     if memory.sub_state == QnaStates.QNA:
         answer = _PREDICTOR.predict(
-            passage=session_attributes.current_article['text'],
+            passage=session_attributes.current_article.text,
             question=user_message.get_utterance())
         bot_message.response_ssml = 'I think it is: {}.'.format(
             answer['best_span_str'])
@@ -88,5 +88,6 @@ def entrypoint(user_message: UserMessage,
         return DialogueStateResult(DialogueStates.QNA,
                                    bot_message=bot_message,
                                    memory_dict=memory.to_dict())
-    raise NotImplementedError('Unknown QNA sub state {}'.format(
-        memory.sub_state))
+    raise NotImplementedError(
+        'Unknown QNA sub state {}'.format(  #pragma: no cover
+            memory.sub_state))
