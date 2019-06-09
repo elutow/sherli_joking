@@ -8,7 +8,7 @@ from pathlib import Path
 class AutoName(enum.Enum):
     """Enum with auto values as lowercase key names"""
 
-    def _generate_next_value_(name: str, start, count, last_values) -> str:  #pylint: disable=no-self-argument
+    def _generate_next_value_(name: str, start, count, last_values) -> str:  #pylint: disable=no-self-argument,unused-argument
         return name.lower()  #pylint: disable=no-member
 
 

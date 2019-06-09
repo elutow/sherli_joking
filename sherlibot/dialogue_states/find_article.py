@@ -3,6 +3,7 @@
 
 from typing import List, Tuple, Dict, Any, Optional
 import logging
+import string
 
 import pke
 from newsapi import NewsApiClient
@@ -22,15 +23,19 @@ _LOGGER = None
 
 def _extract_topics_from_utterance(utterance: str) -> Tuple[str]:
     """Extract keyphrases from utterance"""
+    filtered_utterance = ''.join(x for x in utterance if x in string.printable)
     extractor = pke.unsupervised.TopicRank()
-    extractor.load_document(input=utterance, language='en')
+    extractor.load_document(input=filtered_utterance, language='en')
     extractor.candidate_selection()
+    if not extractor.candidates:
+        # No candidates found during selection; abort
+        return (filtered_utterance, )
     extractor.candidate_weighting()
     keyphrases: List[Tuple[str, float]] = extractor.get_n_best()
     return tuple(x for x, _ in keyphrases)
 
 
-def initialize() -> None:
+def initialize() -> None:  #pragma: no cover
     """Initialize one-time modular services and utilities"""
     global _INITIALIZED, _NEWSAPI_CLIENT, _LOGGER  #pylint: disable=global-statement
     if _INITIALIZED:

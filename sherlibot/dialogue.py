@@ -18,7 +18,7 @@ class DialogueStates(AutoName):
     QNA = enum.auto()
 
 
-class DialogueStateResult:
+class DialogueStateResult:  #pylint: disable=too-few-public-methods
     """
     Returned whenever a dialogue state exits
     """
