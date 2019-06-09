@@ -27,7 +27,10 @@ def _generate_bot_response(user_message: UserMessage, state: DialogueStates,
         for the dialogue state in the next turn.
     """
     bot_message: Optional[BotMessage] = None
+    _LOGGER.debug('Processing user utterance: %s',
+                  repr(user_message.get_utterance()))
     while bot_message is None:
+        _LOGGER.debug('Entering state: %s', repr(state))
         if state == DialogueStates.INIT:
             bot_message = BotMessage()
             bot_message.response_ssml = 'Hi, this is Sherli. What news would you like?'
@@ -35,7 +38,7 @@ def _generate_bot_response(user_message: UserMessage, state: DialogueStates,
             state = DialogueStates.FIND_ARTICLE
         else:
             user_utterance = user_message.get_utterance()
-            if user_utterance in ('stop', 'halt', 'quit', 'exit'):
+            if user_utterance in ('stop', 'halt', 'quit', 'exit', ''):
                 bot_message = BotMessage()
                 bot_message.should_end_session = True
             else:
@@ -60,8 +63,20 @@ def _generate_bot_response(user_message: UserMessage, state: DialogueStates,
                 state = state_result.next_state
                 session_attributes.substate_memory = SubstateMemory(
                     state=state, memory=state_result.memory_dict)
+        _LOGGER.debug('Exited state. Next state: %s', repr(state))
+        if bot_message:
+            _LOGGER.debug(
+                'Bot response: %s, (Reprompt: %s)',
+                repr(getattr(bot_message, 'response_ssml',
+                             '(NOT AN ATTRIBUTE')),
+                repr(
+                    getattr(bot_message, 'reprompt_ssml',
+                            '(NOT AN ATTRIBUTE)')))
+        else:
+            _LOGGER.debug('No bot response returned by state.')
     # Ensure a break statement didn't get us here
     assert bot_message is not None
+    _LOGGER.debug('Sending bot message')
     return bot_message, state
 
 

@@ -91,6 +91,9 @@ def entrypoint(user_message: UserMessage,
         elif user_utterance == 'no':
             try:
                 session_attributes.current_article_index += 1
+                _LOGGER.debug('New article index: %s. Total articles: %s',
+                              session_attributes.current_article_index,
+                              len(session_attributes.queried_articles))
             except IndexError:
                 bot_message = BotMessage()
                 # TODO: Suggest a new query?
@@ -102,7 +105,7 @@ def entrypoint(user_message: UserMessage,
                 return DialogueStateResult(DialogueStates.FIND_ARTICLE,
                                            bot_message=bot_message)
             memory.sub_state = ListArticleStates.GET_ARTICLE
-            return DialogueStateResult(DialogueStates.FIND_ARTICLE,
+            return DialogueStateResult(DialogueStates.LIST_ARTICLES,
                                        memory_dict=memory.to_dict())
         else:
             bot_message = BotMessage()

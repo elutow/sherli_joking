@@ -71,7 +71,7 @@ def entrypoint(user_message: UserMessage,
     bot_message: BotMessage = BotMessage()
 
     if memory.sub_state == QnaStates.SUMMARIZE:
-        bot_message.response_ssml = session_attributes.current_article.summary
+        bot_message.response_ssml = session_attributes.current_article.summary.replace('\n', ' ')
         bot_message.reprompt_ssml = 'Do you have any questions?'
         memory.sub_state = QnaStates.QNA
         return DialogueStateResult(DialogueStates.QNA,

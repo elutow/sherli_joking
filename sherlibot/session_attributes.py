@@ -48,11 +48,11 @@ class SessionAttributes():
         return self.queried_articles[self._current_article_index]
 
     @property
-    def current_article_index(self):
+    def current_article_index(self) -> int:
         return self._current_article_index
 
     @current_article_index.setter
-    def current_article_index(self, value):
+    def current_article_index(self, value: int) -> None:
         if value >= len(self.queried_articles) or value < 0:
             raise IndexError(
                 'New article index {} is out of bounds. Total articles: {}'.
