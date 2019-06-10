@@ -1,5 +1,6 @@
 from typing import Dict, Any, Tuple, Optional
 import logging
+import random
 
 from slowbro.core.bot_base import BotBase
 from slowbro.core.round_saver import DynamoDbRoundSaverAdapter
@@ -13,6 +14,12 @@ from . import dialogue_states
 
 _LOGGER = logging.getLogger(__file__)
 
+sherli_intro_1 = ['Hi,', 'Hello,', 'Greetings,']
+shelri_intro_2 = ["I'm Sherli.", 'Sherli here.', 'this is Sherli.']
+
+query_list_1 = ['news', 'news topics', 'news subject']
+query_list_2 = ['would you like to hear about?', 'are you interested in?', 
+                'would you like to know more about?']
 
 def _generate_bot_response(user_message: UserMessage, state: DialogueStates,
                            session_attributes: SessionAttributes
@@ -33,8 +40,14 @@ def _generate_bot_response(user_message: UserMessage, state: DialogueStates,
         _LOGGER.debug('Entering state: %s', repr(state))
         if state == DialogueStates.INIT:
             bot_message = BotMessage()
-            bot_message.response_ssml = 'Hi, this is Sherli. What news would you like?'
-            bot_message.reprompt_ssml = 'What topics are you interested in?'
+            bot_message.response_ssml = "{} {} What {} {}".format(random.choice(sherli_intro_1), 
+                                                            random.choice(shelri_intro_2),
+                                                            random.choice(query_list_1),
+                                                            random.choice(query_list_2))
+
+            bot_message.reprompt_ssml = "What {} {}".format(random.choice(query_list_1),
+                                                            random.choice(query_list_2))
+
             state = DialogueStates.FIND_ARTICLE
         else:
             user_utterance = user_message.get_utterance()
