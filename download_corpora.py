@@ -27,6 +27,9 @@ def main():
     print("Downloading spacy en corpus...")
     spacy.cli.download("en")
 
+    print("Downloading spacy en_core_web_lg corpus...")
+    spacy.cli.download("en_core_web_lg")
+
     print("Finished.")
 
 if __name__ == '__main__':

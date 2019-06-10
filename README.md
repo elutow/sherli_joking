@@ -16,6 +16,9 @@ pip install -r requirements.txt
 # Download corpora for pke and newspaper3k
 python3 download_corpora.py
 
+# Copy models from elutow/know-your-intent-sherli
+cp -r /path/to/know-your-intent-sherli/models intent_models
+
 mkdir config
 # Add News API key
 printf 'API_KEY_HERE' > config/newsapi_key

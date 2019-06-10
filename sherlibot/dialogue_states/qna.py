@@ -89,20 +89,21 @@ def entrypoint(user_message: UserMessage,
     bot_message: BotMessage = BotMessage()
 
     if memory.sub_state == QnaStates.SUMMARIZE:
-        bot_message.response_ssml = session_attributes.current_article.summary.replace('\n', ' ')
-        bot_message.reprompt_ssml = random.choice(article_content_query)
+        bot_message.response_ssml = session_attributes.current_article.summary.replace(
+            '\n', ' ')
+        bot_message.reprompt_ssml = bot_message.reprompt_ssml = random.choice(article_content_query)
         memory.sub_state = QnaStates.QNA
         return DialogueStateResult(DialogueStates.QNA,
                                    bot_message=bot_message,
                                    memory_dict=memory.to_dict())
     if memory.sub_state == QnaStates.QNA:
+        # TODO: Check if utterance matches an intent
         answer = _PREDICTOR.predict(
             passage=session_attributes.current_article.text,
             question=user_message.get_utterance())
-        bot_message.response_ssml = '{}: {}.'.format(random.choice(article_content_response),
-                                                        answer['best_span_str'])
+        bot_message.response_ssml = 'I think it is: {}.'.format(
+            answer['best_span_str'])
         bot_message.reprompt_ssml = random.choice(article_content_query)
-        # TODO: Check if utterance matches an intent
         return DialogueStateResult(DialogueStates.QNA,
                                    bot_message=bot_message,
                                    memory_dict=memory.to_dict())

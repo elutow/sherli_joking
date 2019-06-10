@@ -11,6 +11,8 @@ from sherlibot.dialogue_states import list_articles
 from sherlibot.dialogue import DialogueStates, DialogueStateResult
 from sherlibot.session_attributes import TESTING_URL, SessionAttributes, ProcessedArticle
 
+from ..test_intents import init_intent_detector  #pylint: disable=unused-import
+
 article_candidate_strategy = strategies.fixed_dictionaries(
     dict(source=strategies.fixed_dictionaries(
         dict(id=strategies.text(), name=strategies.text())),
@@ -43,15 +45,16 @@ def _SessionAttributesStrategy(draw):
 
 SessionAttributesStrategy = _SessionAttributesStrategy()  #pylint: disable=no-value-for-parameter
 
-UserMessageStrategy = strategies.builds(UserMessage,
-                                        channel=strategies.text(),
-                                        request_id=strategies.text(),
-                                        session_id=strategies.text(),
-                                        user_id=strategies.text(),
-                                        text=strategies.one_of(
-                                            strategies.just('yes'),
-                                            strategies.just('no'),
-                                            strategies.text()))
+UserMessageStrategy = strategies.builds(
+    UserMessage,
+    channel=strategies.text(),
+    request_id=strategies.text(),
+    session_id=strategies.text(),
+    user_id=strategies.text(),
+    text=strategies.one_of(strategies.just('yes'), strategies.just('no'),
+                           strategies.just('what did i search'),
+                           strategies.just('get news about python'),
+                           strategies.text()))
 ListArticleMemoryStrategy = strategies.builds(
     list_articles.ListArticleMemory,
     sub_state=strategies.sampled_from(list_articles.ListArticleStates))
@@ -60,7 +63,7 @@ memory_dict_strategy = strategies.one_of(
 
 
 @pytest.fixture(scope='module', autouse=True)
-def _pseudo_init_list_articles():
+def _pseudo_init_list_articles(init_intent_detector):  #pylint: disable=unused-argument,redefined-outer-name
     """Initializes dialogue state with pseudo outputs"""
     #pylint: disable=protected-access
     list_articles._LOGGER = logging.getLogger(__file__)
