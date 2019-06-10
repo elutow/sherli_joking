@@ -4,6 +4,7 @@
 from typing import Dict, Any, Optional
 import enum
 import logging
+import random
 
 from slowbro.core.bot_message import BotMessage
 from slowbro.core.user_message import UserMessage
@@ -53,6 +54,14 @@ def initialize() -> None:  #pragma: no cover
     _LOGGER = logging.getLogger(__file__)
     _INITIALIZED = True
 
+found_article_response_1 = ["Here's an article from",
+                            "I found an article from"]
+found_article_response_2 = ["Do you want to hear more?",
+                            "Would you like to hear more?"]
+missed_query_response = ["I didn't catch that.", "I didn't quite get that."]
+other_search_response = ["What else would you like to search for?",
+                         "What other topics would you like to search?",
+                         "What other news would you like to hear about?"]
 
 def entrypoint(user_message: UserMessage,
                session_attributes: SessionAttributes,
@@ -74,9 +83,11 @@ def entrypoint(user_message: UserMessage,
         # Ask if user wants to hear current article
         bot_message = BotMessage()
         bot_message.response_ssml = (
-            "Here's an article from {}: {}. Do you want to hear more?").format(
+            "{} {}: {}. {}").format(
+                random.choice(found_article_response_1),
                 session_attributes.article_candidate['source']['name'],
-                session_attributes.article_candidate['title'])
+                session_attributes.article_candidate['title'],
+                random.choice(found_article_response_2))
         _LOGGER.debug("Article title: %s",
                       session_attributes.article_candidate['title'])
         memory.sub_state = ListArticleStates.CONFIRM_ARTICLE
@@ -111,7 +122,7 @@ def entrypoint(user_message: UserMessage,
                 # TODO: Suggest a new query?
                 bot_message.response_ssml = (
                     "I couldn't find any more articles about {}. "
-                    "Could you try something else?").format(' and '.join(
+                    + random.choice(other_search_response)).format(' and '.join(
                         session_attributes.search_topics))
                 bot_message.reprompt_ssml = "What would you like to search for?"
                 return DialogueStateResult(DialogueStates.FIND_ARTICLE,
@@ -122,11 +133,13 @@ def entrypoint(user_message: UserMessage,
         else:
             bot_message = BotMessage()
             bot_message.response_ssml = (
-                "Sorry, I didn't quite catch that. Do you want to hear more?")
+                "{}. Do you want to hear more?".format(random.choice(missed_query_response)))
             bot_message.reprompt_ssml = (
-                "I have an article from {}: {}. Do you want to hear more?"
-            ).format(session_attributes.article_candidate['source']['name'],
-                     session_attributes.article_candidate['title'])
+            "{} {}: {}. {}").format(
+                random.choice(found_article_response_1),
+                session_attributes.article_candidate['source']['name'],
+                session_attributes.article_candidate['title'],
+                random.choice(found_article_response_2))
             return DialogueStateResult(DialogueStates.LIST_ARTICLES,
                                        bot_message=bot_message,
                                        memory_dict=memory.to_dict())
