@@ -21,6 +21,21 @@ _INITIALIZED = False
 _NEWSAPI_CLIENT = None
 _LOGGER = None
 
+# Language generation variations
+_QUERY_LIST_1 = ['news', 'news topics', 'news subject']
+_QUERY_LIST_2 = [
+    'would you like to hear about?', 'are you interested in?',
+    'would you like to know more about?'
+]
+_MISSED_QUERY_RESPONSE = ["I didn't catch that.", "I didn't quite get that."]
+_REPEAT_QUERY_RESPONSE = [
+    "Please try again.", "Please repeat what you said.", "Please answer again"
+]
+_NO_KEYWORD_QUERY_RESPONSE = [
+    "Sorry, I couldn't figure out what you wanted to search.",
+    "Sorry, I wasn't able to figure out what you wanted to search."
+]
+
 
 def _extract_topics_from_utterance(utterance: str) -> Tuple[str]:
     """Extract keyphrases from utterance"""
@@ -45,22 +60,6 @@ def initialize() -> None:  #pragma: no cover
         api_key=(get_config_dir() / 'newsapi_key').read_text().strip())
     _LOGGER = logging.getLogger(__file__)
     _INITIALIZED = True
-
-
-_QUERY_LIST_1 = ['news', 'news topics', 'news subject']
-_QUERY_LIST_2 = [
-    'would you like to hear about?', 'are you interested in?',
-    'would you like to know more about?'
-]
-
-_MISSED_QUERY_RESPONSE = ["I didn't catch that.", "I didn't quite get that."]
-_REPEAT_QUERY_RESPONSE = [
-    "Please try again.", "Please repeat what you said.", "Please answer again"
-]
-_NO_KEYWORD_QUERY_RESPONSE = [
-    "Sorry, I couldn't figure out what you wanted to search.",
-    "Sorry, I wasn't able to figure out what you wanted to search."
-]
 
 
 def entrypoint(user_message: UserMessage,
