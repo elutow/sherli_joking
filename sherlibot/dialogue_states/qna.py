@@ -55,21 +55,26 @@ def initialize() -> None:  #pragma: no cover
     _INITIALIZED = True
 
 
-article_content_response = ['I think the answer is',
-                            'I found this in the article',
-                            'I think this may answer your question',
-                            'This may answer your question']
+_ARTICLE_CONTENT_RESPONSE = [
+    'I think the answer is', 'I found this in the article',
+    'I think this may answer your question', 'This may answer your question'
+]
 
-article_content_confirmation = ['Did that answer your question?',
-                                'Was that able to answer your question?',
-                                'Was that answer helpful?']
+_ARTICLE_CONTENT_CONFIRMATION = [
+    'Did that answer your question?', 'Was that able to answer your question?',
+    'Was that answer helpful?'
+]
 
-article_content_query_other = ['What other questions do you have?',
-                               'What additional questions do you have?',
-                               'What else would you like to know?']
+_ARTICLE_CONTENT_QUERY_OTHER = [
+    'What other questions do you have?',
+    'What additional questions do you have?',
+    'What else would you like to know?'
+]
 
-article_content_query = ['What questions do you have regarding this article?',
-                         "What would you like to know about this article?"]
+_ARTICLE_CONTENT_QUERY = [
+    'What questions do you have regarding this article?',
+    "What would you like to know about this article?"
+]
 
 
 def entrypoint(user_message: UserMessage,
@@ -91,7 +96,8 @@ def entrypoint(user_message: UserMessage,
     if memory.sub_state == QnaStates.SUMMARIZE:
         bot_message.response_ssml = session_attributes.current_article.summary.replace(
             '\n', ' ')
-        bot_message.reprompt_ssml = bot_message.reprompt_ssml = random.choice(article_content_query)
+        bot_message.reprompt_ssml = bot_message.reprompt_ssml = random.choice(
+            _ARTICLE_CONTENT_QUERY)
         memory.sub_state = QnaStates.QNA
         return DialogueStateResult(DialogueStates.QNA,
                                    bot_message=bot_message,
@@ -103,7 +109,7 @@ def entrypoint(user_message: UserMessage,
             question=user_message.get_utterance())
         bot_message.response_ssml = 'I think it is: {}.'.format(
             answer['best_span_str'])
-        bot_message.reprompt_ssml = random.choice(article_content_query)
+        bot_message.reprompt_ssml = random.choice(_ARTICLE_CONTENT_QUERY)
         return DialogueStateResult(DialogueStates.QNA,
                                    bot_message=bot_message,
                                    memory_dict=memory.to_dict())

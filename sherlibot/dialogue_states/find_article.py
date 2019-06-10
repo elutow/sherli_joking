@@ -47,17 +47,17 @@ def initialize() -> None:  #pragma: no cover
     _INITIALIZED = True
 
 
-query_list_1 = ['news', 'news topics', 'news subject']
-query_list_2 = [
+_QUERY_LIST_1 = ['news', 'news topics', 'news subject']
+_QUERY_LIST_2 = [
     'would you like to hear about?', 'are you interested in?',
     'would you like to know more about?'
 ]
 
-missed_query_response = ["I didn't catch that.", "I didn't quite get that."]
-repeat_query_response = [
+_MISSED_QUERY_RESPONSE = ["I didn't catch that.", "I didn't quite get that."]
+_REPEAT_QUERY_RESPONSE = [
     "Please try again.", "Please repeat what you said.", "Please answer again"
 ]
-no_keyword_query_response = [
+_NO_KEYWORD_QUERY_RESPONSE = [
     "Sorry, I couldn't figure out what you wanted to search.",
     "Sorry, I wasn't able to figure out what you wanted to search."
 ]
@@ -75,7 +75,7 @@ def entrypoint(user_message: UserMessage,
 
     bot_message: BotMessage = BotMessage()
     bot_message.reprompt_ssml = "What {} {}".format(
-        random.choice(query_list_1), random.choice(query_list_2))
+        random.choice(_QUERY_LIST_1), random.choice(_QUERY_LIST_2))
 
     # TODO: Ability to query based on top headlines?
 
@@ -83,8 +83,8 @@ def entrypoint(user_message: UserMessage,
     user_utterance: str = user_message.get_utterance()
     if not user_utterance:
         bot_message.response_ssml = "Sorry, {} {}".format(
-            random.choice(missed_query_response),
-            random.choice(repeat_query_response))
+            random.choice(_MISSED_QUERY_RESPONSE),
+            random.choice(_REPEAT_QUERY_RESPONSE))
         return DialogueStateResult(DialogueStates.FIND_ARTICLE,
                                    bot_message=bot_message)
 
@@ -92,8 +92,8 @@ def entrypoint(user_message: UserMessage,
     keyphrases: Tuple[str] = _extract_topics_from_utterance(user_utterance)
     if not keyphrases:
         bot_message.response_ssml = "{} {}".format(
-            random.choice(no_keyword_query_response),
-            random.choice(repeat_query_response))
+            random.choice(_NO_KEYWORD_QUERY_RESPONSE),
+            random.choice(_REPEAT_QUERY_RESPONSE))
 
         return DialogueStateResult(DialogueStates.FIND_ARTICLE,
                                    bot_message=bot_message)
@@ -107,7 +107,7 @@ def entrypoint(user_message: UserMessage,
     if not queried_articles:
         bot_message.response_ssml = (
             "Hmm, I couldn't find any articles on {}. " +
-            random.choice(repeat_query_response)).format(
+            random.choice(_REPEAT_QUERY_RESPONSE)).format(
                 ' and '.join(keyphrases))
         return DialogueStateResult(DialogueStates.FIND_ARTICLE,
                                    bot_message=bot_message)

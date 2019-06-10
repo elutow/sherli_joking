@@ -54,14 +54,20 @@ def initialize() -> None:  #pragma: no cover
     _LOGGER = logging.getLogger(__file__)
     _INITIALIZED = True
 
-found_article_response_1 = ["Here's an article from",
-                            "I found an article from"]
-found_article_response_2 = ["Do you want to hear more?",
-                            "Would you like to hear more?"]
-missed_query_response = ["I didn't catch that.", "I didn't quite get that."]
-other_search_response = ["What else would you like to search for?",
-                         "What other topics would you like to search?",
-                         "What other news would you like to hear about?"]
+
+_FOUND_ARTICLE_RESPONSE_1 = [
+    "Here's an article from", "I found an article from"
+]
+_FOUND_ARTICLE_RESPONSE_2 = [
+    "Do you want to hear more?", "Would you like to hear more?"
+]
+_MISSED_QUERY_RESPONSE = ["I didn't catch that.", "I didn't quite get that."]
+_OTHER_SEARCH_RESPONSE = [
+    "What else would you like to search for?",
+    "What other topics would you like to search?",
+    "What other news would you like to hear about?"
+]
+
 
 def entrypoint(user_message: UserMessage,
                session_attributes: SessionAttributes,
@@ -82,12 +88,11 @@ def entrypoint(user_message: UserMessage,
     if memory.sub_state == ListArticleStates.GET_ARTICLE:
         # Ask if user wants to hear current article
         bot_message = BotMessage()
-        bot_message.response_ssml = (
-            "{} {}: {}. {}").format(
-                random.choice(found_article_response_1),
-                session_attributes.article_candidate['source']['name'],
-                session_attributes.article_candidate['title'],
-                random.choice(found_article_response_2))
+        bot_message.response_ssml = ("{} {}: {}. {}").format(
+            random.choice(_FOUND_ARTICLE_RESPONSE_1),
+            session_attributes.article_candidate['source']['name'],
+            session_attributes.article_candidate['title'],
+            random.choice(_FOUND_ARTICLE_RESPONSE_2))
         _LOGGER.debug("Article title: %s",
                       session_attributes.article_candidate['title'])
         memory.sub_state = ListArticleStates.CONFIRM_ARTICLE
@@ -122,8 +127,8 @@ def entrypoint(user_message: UserMessage,
                 bot_message = BotMessage()
                 # TODO: Suggest a new query?
                 bot_message.response_ssml = (
-                    "I couldn't find any more articles about {}. "
-                    + random.choice(other_search_response)).format(' and '.join(
+                    "I couldn't find any more articles about {}. " +
+                    random.choice(_OTHER_SEARCH_RESPONSE)).format(' and '.join(
                         session_attributes.search_topics))
                 bot_message.reprompt_ssml = "What would you like to search for?"
                 return DialogueStateResult(DialogueStates.FIND_ARTICLE,
@@ -134,16 +139,16 @@ def entrypoint(user_message: UserMessage,
         else:
             bot_message = BotMessage()
             bot_message.response_ssml = (
-                "{}. Do you want to hear more?".format(random.choice(missed_query_response)))
-            bot_message.reprompt_ssml = (
-            "{} {}: {}. {}").format(
-                random.choice(found_article_response_1),
+                "{}. Do you want to hear more?".format(
+                    random.choice(_MISSED_QUERY_RESPONSE)))
+            bot_message.reprompt_ssml = ("{} {}: {}. {}").format(
+                random.choice(_FOUND_ARTICLE_RESPONSE_1),
                 session_attributes.article_candidate['source']['name'],
                 session_attributes.article_candidate['title'],
-                random.choice(found_article_response_2))
+                random.choice(_FOUND_ARTICLE_RESPONSE_2))
             return DialogueStateResult(DialogueStates.LIST_ARTICLES,
                                        bot_message=bot_message,
                                        memory_dict=memory.to_dict())
-    else:
+    else:  #pragma: no cover
         raise NotImplementedError('Unknown LIST_ARTICLES sub-state: {}'.format(
             repr(memory.sub_state)))
