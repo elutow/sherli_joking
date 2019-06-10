@@ -10,7 +10,7 @@ from slowbro.core.bot_message import BotMessage
 from .session_attributes import SessionAttributes, SubstateMemory
 from .round_attributes import RoundAttributes
 from .dialogue import DialogueStates, DialogueStateResult
-from . import dialogue_states
+from . import dialogue_states, intents
 
 _LOGGER = logging.getLogger(__file__)
 
@@ -102,9 +102,12 @@ class Bot(BotBase):
         """Constructor."""
 
         # Initialize dialogue management utilities if not already initialized
+        _LOGGER.info('Initializing modules...')
         dialogue_states.find_article.initialize()
         dialogue_states.list_articles.initialize()
         dialogue_states.qna.initialize()
+        intents.initialize()
+        _LOGGER.info('Done initializing modules.')
 
         # TODO: Move local session data to DynamoDb
         # session_id -> SessionAttributes

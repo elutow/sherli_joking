@@ -9,8 +9,11 @@ from slowbro.core.bot_message import BotMessage
 from slowbro.core.user_message import UserMessage
 
 from ..dialogue import DialogueStates, DialogueStateResult
+from ..intents import IntentDataset, predict_intent
 from ..session_attributes import SessionAttributes
 from ..utils import AutoName
+
+from ._common import get_echo_query_message
 
 # Modular services and utilities
 _INITIALIZED = False
@@ -80,14 +83,23 @@ def entrypoint(user_message: UserMessage,
         return DialogueStateResult(DialogueStates.LIST_ARTICLES,
                                    bot_message=bot_message,
                                    memory_dict=memory.to_dict())
-    if memory.sub_state == ListArticleStates.CONFIRM_ARTICLE:
+    elif memory.sub_state == ListArticleStates.CONFIRM_ARTICLE:
         user_utterance = user_message.get_utterance()
-        if False:  # TODO: Check if intent is detected
-            raise NotImplementedError()
-        elif user_utterance == 'yes':
+        intent = predict_intent(user_utterance, IntentDataset.NAVIGATE)
+        if intent == 'search':
+            return DialogueStateResult(DialogueStates.FIND_ARTICLE)
+        elif intent == 'elaborate' or user_utterance == 'yes':
             # User wants to hear about article; process it and goto QnA for summary
             session_attributes.update_current_article()
             return DialogueStateResult(DialogueStates.QNA)
+        elif intent == 'echo_query':
+            bot_message: BotMessage = get_echo_query_message(
+                session_attributes)
+            bot_message.reprompt_ssml = (
+                "Do you still want to hear more about the article from {}?"
+            ).format(session_attributes.article_candidate['source']['name'])
+            return DialogueStateResult(DialogueStates.LIST_ARTICLES,
+                                       memory_dict=memory.to_dict())
         elif user_utterance == 'no':
             try:
                 session_attributes.current_article_index += 1
@@ -118,3 +130,6 @@ def entrypoint(user_message: UserMessage,
             return DialogueStateResult(DialogueStates.LIST_ARTICLES,
                                        bot_message=bot_message,
                                        memory_dict=memory.to_dict())
+    else:
+        raise NotImplementedError('Unknown LIST_ARTICLES sub-state: {}'.format(
+            repr(memory.sub_state)))

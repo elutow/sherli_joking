@@ -5,5 +5,6 @@ disable=
 	invalid-name,
 	logging-fstring-interpolation,
 	missing-docstring,
+	no-else-return,
 	too-many-arguments,
 	too-many-return-statements,
