@@ -44,7 +44,7 @@ def get_model(dataset_name: str
     assert _INITIALIZED
     if dataset_name not in _MODELS:
         _MODELS[dataset_name] = know_your_intent.load_models(
-            dataset_name, models_dir=_MODELS_DIR / dataset_name)
+            dataset_name, models_prefix=_MODELS_DIR)
     return _MODELS[dataset_name]
 
 

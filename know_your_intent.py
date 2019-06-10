@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from pathlib import Path
 from time import time
-from typing import List, Optional, Tuple, Any
+from typing import List, Tuple, Any
 import csv
 import math
 import pickle
@@ -485,8 +485,7 @@ def get_vectorizer(corpus, vectorizer_name):
         vectorizer.fit(corpus)
         feature_names = vectorizer.get_feature_names()
     elif vectorizer_name == "hash":
-        vectorizer = HashingVectorizer(
-            analyzer='word', n_features=2**10)
+        vectorizer = HashingVectorizer(analyzer='word', n_features=2**10)
         vectorizer.fit(corpus)
         feature_names = None
     elif vectorizer_name == "tfidf":
@@ -818,13 +817,12 @@ def save_models(dataset_name: str, classifiers, vectorizer) -> None:
             pickle.dump(clf, pickled_file)
 
 
-def load_models(dataset_name: str, models_dir: Optional[Path] = None
-                ) -> Tuple[List[Tuple[Any, str]], Any, List[str]]:
+def load_models(
+        dataset_name: str,
+        models_prefix: Path = _MODELS_PREFIX,
+) -> Tuple[List[Tuple[Any, str]], Any, List[str]]:
     input_dir: Path
-    if models_dir:
-        input_dir = models_dir
-    else:
-        input_dir = _MODELS_PREFIX / dataset_name
+    input_dir = models_prefix / dataset_name
 
     # Read vectorizer
     with (input_dir / VECTORIZER_FILENAME).open('rb') as pickled_file:
@@ -839,7 +837,7 @@ def load_models(dataset_name: str, models_dir: Optional[Path] = None
         classifiers.append((clf, name))
 
     # Read intent names (target_names)
-    target_names = _get_target_names(dataset_name, prefix=_MODELS_PREFIX)
+    target_names = _get_target_names(dataset_name, prefix=models_prefix)
 
     return classifiers, vectorizer, target_names
 

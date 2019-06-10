@@ -110,6 +110,7 @@ def entrypoint(user_message: UserMessage,
                 "Do you still want to hear more about the article from {}?"
             ).format(session_attributes.article_candidate['source']['name'])
             return DialogueStateResult(DialogueStates.LIST_ARTICLES,
+                                       bot_message=bot_message,
                                        memory_dict=memory.to_dict())
         elif user_utterance == 'no':
             try:
