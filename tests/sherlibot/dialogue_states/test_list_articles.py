@@ -1,6 +1,5 @@
 """Test sherlibot.dialogue_states.list_articles"""
 
-from typing import Optional
 import logging
 
 from hypothesis import given, strategies
@@ -8,10 +7,11 @@ import pytest
 
 from slowbro.core.user_message import UserMessage
 
-from sherlibot import intents
 from sherlibot.dialogue import DialogueStates, DialogueStateResult
 from sherlibot.dialogue_states import list_articles
 from sherlibot.session_attributes import TESTING_URL, SessionAttributes, ProcessedArticle
+
+from ._common import PseudoPredictIntent
 
 article_candidate_strategy = strategies.fixed_dictionaries(
     dict(source=strategies.fixed_dictionaries(
@@ -62,30 +62,6 @@ memory_dict_strategy = strategies.one_of(
     strategies.none(), ListArticleMemoryStrategy.map(lambda x: x.to_dict()))
 
 
-class _PseudoPredictIntent:
-    def __init__(self, data_strategy):
-        self._data = data_strategy
-        self._orig_predict = list_articles.predict_intent
-
-    def _pseudo_predict_intent(
-            self,
-            utterance: str,  #pylint: disable=unused-argument
-            dataset_enum: intents.IntentDataset,
-            classifier_name: str = intents.DEFAULT_CLASSIFIER  #pylint: disable=unused-argument
-    ) -> Optional[str]:
-        if dataset_enum == intents.IntentDataset.NAVIGATE:
-            return self._data.draw(
-                strategies.sampled_from(
-                    ('search', 'elaborate', 'echo_query', None)))
-        return None
-
-    def __enter__(self):
-        list_articles.predict_intent = self._pseudo_predict_intent
-
-    def __exit__(self, *_):
-        list_articles.predict_intent = self._orig_predict
-
-
 @pytest.fixture(scope='module', autouse=True)
 def _pseudo_init_list_articles():
     """Initializes dialogue state with pseudo outputs"""
@@ -111,7 +87,7 @@ def test_entrypoint(data_strategy, user_message, session_attributes,
     """Test LIST_ARTICLES state"""
     result: DialogueStateResult = DialogueStateResult(
         DialogueStates.LIST_ARTICLES)
-    with _PseudoPredictIntent(data_strategy):
+    with PseudoPredictIntent(data_strategy):
         while result.next_state == DialogueStates.LIST_ARTICLES and not result.bot_message:
             result: DialogueStateResult = list_articles.entrypoint(
                 user_message=user_message,

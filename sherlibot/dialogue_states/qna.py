@@ -12,8 +12,11 @@ from slowbro.core.bot_message import BotMessage
 from slowbro.core.user_message import UserMessage
 
 from ..session_attributes import SessionAttributes
+from ..intents import IntentDataset, predict_intent
 from ..dialogue import DialogueStates, DialogueStateResult
 from ..utils import AutoName
+
+from ._common import get_echo_query_message
 
 # Modular services and utilities
 _INITIALIZED = False
@@ -103,12 +106,21 @@ def entrypoint(user_message: UserMessage,
                                    bot_message=bot_message,
                                    memory_dict=memory.to_dict())
     if memory.sub_state == QnaStates.QNA:
-        # TODO: Check if utterance matches an intent
+        intent = predict_intent(user_message.get_utterance(),
+                                IntentDataset.NAVIGATE)
+        if intent == 'search':
+            return DialogueStateResult(DialogueStates.FIND_ARTICLE)
+        elif intent == 'echo_query':
+            bot_message = get_echo_query_message(session_attributes)
+            bot_message.reprompt_ssml = random.choice(_ARTICLE_CONTENT_QUERY)
+            return DialogueStateResult(DialogueStates.QNA,
+                                       bot_message=bot_message,
+                                       memory_dict=memory.to_dict())
         answer = _PREDICTOR.predict(
             passage=session_attributes.current_article.text,
             question=user_message.get_utterance())
-        bot_message.response_ssml = 'I think it is: {}.'.format(
-            answer['best_span_str'])
+        bot_message.response_ssml = '{}: {}.'.format(
+            random.choice(_ARTICLE_CONTENT_RESPONSE), answer['best_span_str'])
         bot_message.reprompt_ssml = random.choice(_ARTICLE_CONTENT_QUERY)
         return DialogueStateResult(DialogueStates.QNA,
                                    bot_message=bot_message,

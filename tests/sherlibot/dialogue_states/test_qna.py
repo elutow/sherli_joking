@@ -12,6 +12,8 @@ from sherlibot.dialogue_states import qna
 from sherlibot.dialogue import DialogueStates, DialogueStateResult
 from sherlibot.session_attributes import SessionAttributes, ProcessedArticle
 
+from ._common import PseudoPredictIntent
+
 JsonStrategy = strategies.recursive(
     strategies.none() | strategies.booleans() | strategies.floats()
     | strategies.text(),
@@ -72,15 +74,18 @@ def test_qnamemory_dict_serialization(memory):
     assert memory.to_dict() == new_memory.to_dict()
 
 
-@given(user_message=UserMessageStrategy,
+@given(data_strategy=strategies.data(),
+       user_message=UserMessageStrategy,
        session_attributes=SessionAttributesStrategy,
        memory_dict=memory_dict_strategy)
-def test_entrypoint(user_message, session_attributes, memory_dict):
+def test_entrypoint(data_strategy, user_message, session_attributes,
+                    memory_dict):
     """Test QNA state"""
     result: DialogueStateResult = DialogueStateResult(DialogueStates.QNA)
-    while result.next_state == DialogueStates.QNA and not result.bot_message:
-        result: DialogueStateResult = qna.entrypoint(
-            user_message=user_message,
-            session_attributes=session_attributes,
-            memory_dict=memory_dict)
-        memory_dict = result.memory_dict
+    with PseudoPredictIntent(data_strategy):
+        while result.next_state == DialogueStates.QNA and not result.bot_message:
+            result: DialogueStateResult = qna.entrypoint(
+                user_message=user_message,
+                session_attributes=session_attributes,
+                memory_dict=memory_dict)
+            memory_dict = result.memory_dict

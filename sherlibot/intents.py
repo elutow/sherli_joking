@@ -11,9 +11,9 @@ import know_your_intent
 from .utils import AutoName
 
 # Constants
-DEFAULT_CLASSIFIER = 'gridsearchmlp'
+DEFAULT_CLASSIFIER = 'LogisticRegression'
 _MODELS_DIR = Path(__file__).resolve().parent.parent / 'intent_models'
-_PROB_THRESHOLD = 0.65
+_PROB_THRESHOLD = 0.75
 
 # Runtime module state
 _MODELS = dict()

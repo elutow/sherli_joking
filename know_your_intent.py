@@ -19,7 +19,6 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
 from sklearn.naive_bayes import BernoulliNB, MultinomialNB
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.neural_network import MLPClassifier
 from sklearn.utils.extmath import density
 
 # ## Benchmarking using SemHash
@@ -513,8 +512,6 @@ def _new_classifiers() -> List[Tuple[Any, str]]:
     knn = KNeighborsClassifier(n_neighbors=5)
     return [
         (GridSearchCV(knn, parameters_knn, cv=5), "gridsearchknn"),
-        (GridSearchCV(MLPClassifier(activation='tanh'), parameters_mlp, cv=5),
-         "gridsearchmlp"),
         (GridSearchCV(
             RandomForestClassifier(n_estimators=10), parameters_RF, cv=5),
          "gridsearchRF"),
