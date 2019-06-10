@@ -16,7 +16,9 @@ pip install -r requirements.txt
 # Download corpora for pke and newspaper3k
 python3 download_corpora.py
 
-# Copy models from elutow/know-your-intent-sherli
+# Symlink intent models
+ln -s /path/to/know-your-intent-sherli/models intent_models
+# OR copy models from elutow/know-your-intent-sherli
 cp -r /path/to/know-your-intent-sherli/models intent_models
 
 mkdir config

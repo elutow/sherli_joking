@@ -17,9 +17,7 @@ class PseudoPredictIntent:
     def _pseudo_predict_intent(
             self,
             utterance: str,  #pylint: disable=unused-argument
-            dataset_enum: intents.IntentDataset,
-            classifier_name: str = intents.DEFAULT_CLASSIFIER  #pylint: disable=unused-argument
-    ) -> Optional[str]:
+            dataset_enum: intents.IntentDataset) -> Optional[str]:
         if dataset_enum == intents.IntentDataset.NAVIGATE:
             return self._data.draw(
                 strategies.sampled_from(
