@@ -14,16 +14,12 @@ JsonStrategy = strategies.recursive(
     max_leaves=5)
 SessionAttributesStrategy = strategies.builds(
     SessionAttributes,
-    search_topics=strategies.one_of(strategies.none(),
-                                    strategies.lists(strategies.text())),
     queried_articles=strategies.one_of(strategies.none(),
                                        strategies.lists(JsonStrategy)),
     current_article=strategies.one_of(
         strategies.none(),
         strategies.builds(ProcessedArticle, strategies.text(), JsonStrategy,
-                          strategies.text(),
-                          strategies.lists(strategies.text()),
-                          strategies.text())),
+                          strategies.text(), strategies.text())),
     current_article_index=strategies.integers(),
     next_round_index=strategies.integers(),
     next_dialogue_state=strategies.sampled_from(DialogueStates))

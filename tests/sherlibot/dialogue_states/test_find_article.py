@@ -7,6 +7,8 @@ import pytest
 
 from slowbro.core.user_message import UserMessage
 
+from nemo_utils import aylien_wrapper
+
 from sherlibot.dialogue_states import find_article
 from sherlibot.dialogue import DialogueStates, DialogueStateResult
 from sherlibot.session_attributes import TESTING_URL, SessionAttributes, ProcessedArticle
@@ -29,11 +31,10 @@ def _SessionAttributesStrategy(draw):
     session_attributes = draw(
         strategies.builds(
             SessionAttributes,
-            search_topics=strategies.lists(strategies.text(), min_size=1),
             queried_articles=strategies.just(queried_articles),
             current_article=strategies.builds(
                 ProcessedArticle, strategies.text(), strategies.none(),
-                strategies.text(), strategies.lists(strategies.text()),
+                strategies.text(),
                 strategies.text()),
             current_article_index=strategies.just(current_article_index),
             #next_round_index=strategies.integers(),
@@ -84,31 +85,24 @@ def _pseudo_init_list_articles():
     find_article._INITIALIZED = True
 
 
-class _PseudoExtractTopicsFromUtterance:
+class _PseudoNemoGenerateQuery:
     #pylint: disable=protected-access
 
     def __init__(self, data_strategy):
-        self._orig_func = find_article._extract_topics_from_utterance
+        self._orig_func = aylien_wrapper.generate_query
         self._data_strategy = data_strategy
 
     def _pseudo_extract_topics(self, _):
-        return self._data_strategy.draw(strategies.lists(strategies.text()))
+        return self._data_strategy.draw(
+            strategies.tuples(strategies.text(),
+                              strategies.lists(strategies.text()),
+                              strategies.lists(strategies.text())))
 
     def __enter__(self):
-        find_article._extract_topics_from_utterance = self._pseudo_extract_topics
+        aylien_wrapper.generate_query = self._pseudo_extract_topics
 
     def __exit__(self, *_):
-        find_article._extract_topics_from_utterance = self._orig_func
-
-
-# Disable deadline due to variability in keyphrase extraction
-@settings(deadline=None, max_examples=10)
-@given(
-    strategies.one_of(strategies.just('what is sherlibot'), strategies.text()))
-def test_keyprhase_extraction(utterance):
-    """Tests keyphrase extraction in _extract_topics_from_utterance"""
-    result = find_article._extract_topics_from_utterance(utterance)  #pylint: disable=protected-access
-    assert isinstance(result, tuple)
+        aylien_wrapper.generate_query = self._orig_func
 
 
 @given(data_strategy=strategies.data(),
@@ -120,8 +114,8 @@ def test_entrypoint(data_strategy, user_message, session_attributes,
     """Test FIND_ARTICLE state"""
     result: DialogueStateResult = DialogueStateResult(
         DialogueStates.FIND_ARTICLE)
-    with _PseudoExtractTopicsFromUtterance(
-            data_strategy), _PseudoNewsAPIClientContext(data_strategy):
+    with _PseudoNemoGenerateQuery(data_strategy), _PseudoNewsAPIClientContext(
+            data_strategy):
         while result.next_state == DialogueStates.FIND_ARTICLE and not result.bot_message:
             result: DialogueStateResult = find_article.entrypoint(
                 user_message=user_message,

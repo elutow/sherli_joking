@@ -31,12 +31,12 @@ def _SessionAttributesStrategy(draw):
     session_attributes = draw(
         strategies.builds(
             SessionAttributes,
-            search_topics=strategies.lists(strategies.text(), min_size=1),
             queried_articles=strategies.just(queried_articles),
-            current_article=strategies.builds(
-                ProcessedArticle, strategies.text(), strategies.none(),
-                strategies.text(), strategies.lists(strategies.text()),
-                strategies.text()),
+            current_article=strategies.builds(ProcessedArticle,
+                                              strategies.text(),
+                                              strategies.none(),
+                                              strategies.text(),
+                                              strategies.text()),
             current_article_index=strategies.just(current_article_index),
             #next_round_index=strategies.integers(),
             next_dialogue_state=strategies.sampled_from(DialogueStates)))

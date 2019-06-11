@@ -28,7 +28,6 @@ SessionAttributesStrategy = strategies.builds(
     #                                   strategies.lists(JsonStrategy)),
     current_article=strategies.builds(ProcessedArticle, strategies.text(),
                                       JsonStrategy, strategies.text(),
-                                      strategies.lists(strategies.text()),
                                       strategies.text()),
     #current_article_index=strategies.integers(),
     #next_round_index=strategies.integers(),

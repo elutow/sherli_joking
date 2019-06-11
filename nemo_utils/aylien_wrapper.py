@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Modules for search query extraction and Aylien"""
 
+from typing import List
 import json
 
 from allennlp.predictors.predictor import Predictor
@@ -66,8 +67,8 @@ def generate_query(user_sentence):
 
     includetags = ['CD', 'NNS', 'NN', 'NNP', 'NNPS']
 
-    mainwordlist = []
-    excludewordlist = []
+    include_words = []
+    exclude_words = []
 
     excludeflag = 0
     for ivar in range(len(wordlist)):
@@ -84,24 +85,26 @@ def generate_query(user_sentence):
         if excludeflag == 0:
             for elvar2 in includetags:
                 if taglist[ivar] == elvar2:
-                    mainwordlist.append(wordlist[ivar])
+                    include_words.append(wordlist[ivar])
                     break
         else:
             for elvar3 in includetags:
                 if taglist[ivar] == elvar3:
-                    excludewordlist.append(wordlist[ivar])
+                    exclude_words.append(wordlist[ivar])
                     break
 
-    mainwordstr = " OR ".join(mainwordlist)
+    main_query = " OR ".join(include_words)
 
-    return mainwordstr, mainwordlist, excludewordlist
+    return main_query, include_words, exclude_words
 
 
-def extract_news(user_sentence, include_category='', exclude_category=''):
+def extract_news(main_query: str,
+                 include_words: List[str],
+                 exclude_words: List[str],
+                 include_category='',
+                 exclude_category=''):
 
     assert _INITIALIZED
-
-    mainwordstr, mainwordlist, excludewordlist = generate_query(user_sentence)
 
     #############
     '''
@@ -146,19 +149,19 @@ def extract_news(user_sentence, include_category='', exclude_category=''):
         excatidvar = []
 
     opts = {
-        'title': mainwordstr,
-        'text': mainwordstr,
+        'title': main_query,
+        'text': main_query,
         'categories_taxonomy': 'iptc-subjectcode',
         'categories_id': incatidvar,
         'not_categories_id': excatidvar,
-        'entities_body_text': mainwordlist,
-        'not_entities_body_text': excludewordlist,
+        'entities_body_text': include_words,
+        'not_entities_body_text': exclude_words,
         'sort_by': 'relevance',
         'language': ['en'],
         'not_language': ['es', 'it'],
         'published_at_start': 'NOW-6MONTHS',
         'published_at_end': 'NOW',
-        '_return': ['title', 'summary', 'source']
+        '_return': ['title', 'summary', 'body', 'source']
     }
 
     api_response = _AYLIEN_API.list_stories(**opts)

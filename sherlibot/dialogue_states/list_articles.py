@@ -78,7 +78,7 @@ def entrypoint(user_message: UserMessage,
     It can mutate session_attributes or round_attributes
     """
     assert _INITIALIZED
-    assert session_attributes.search_topics
+    assert session_attributes.query_include_words or session_attributes.query_exclude_words
     assert session_attributes.queried_articles
 
     memory = ListArticleMemory()
@@ -90,11 +90,11 @@ def entrypoint(user_message: UserMessage,
         bot_message = BotMessage()
         bot_message.response_ssml = ("{} {}: {}. {}").format(
             random.choice(_FOUND_ARTICLE_RESPONSE_1),
-            session_attributes.article_candidate['source']['name'],
-            session_attributes.article_candidate['title'],
+            session_attributes.article_candidate.source.name,
+            session_attributes.article_candidate.title,
             random.choice(_FOUND_ARTICLE_RESPONSE_2))
         _LOGGER.debug("Article title: %s",
-                      session_attributes.article_candidate['title'])
+                      session_attributes.article_candidate.title)
         memory.sub_state = ListArticleStates.CONFIRM_ARTICLE
         return DialogueStateResult(DialogueStates.LIST_ARTICLES,
                                    bot_message=bot_message,
@@ -114,7 +114,10 @@ def entrypoint(user_message: UserMessage,
                 bot_message.response_ssml = (
                     "I couldn't find any more articles about {}. " +
                     random.choice(_OTHER_SEARCH_RESPONSE)).format(' and '.join(
-                        session_attributes.search_topics))
+                        session_attributes.query_include_words))
+                if session_attributes.query_exclude_words:
+                    bot_message.response_ssml += ', excluding ' + ' and '.join(
+                        session_attributes.query_exclude_words)
                 bot_message.reprompt_ssml = "What would you like to search for?"
                 return DialogueStateResult(DialogueStates.FIND_ARTICLE,
                                            bot_message=bot_message)
@@ -132,7 +135,7 @@ def entrypoint(user_message: UserMessage,
                 session_attributes)
             bot_message.reprompt_ssml = (
                 "Do you still want to hear more about the article from {}?"
-            ).format(session_attributes.article_candidate['source']['name'])
+            ).format(session_attributes.article_candidate.source.name)
             return DialogueStateResult(DialogueStates.LIST_ARTICLES,
                                        bot_message=bot_message,
                                        memory_dict=memory.to_dict())
@@ -143,8 +146,8 @@ def entrypoint(user_message: UserMessage,
                     random.choice(_MISSED_QUERY_RESPONSE)))
             bot_message.reprompt_ssml = ("{} {}: {}. {}").format(
                 random.choice(_FOUND_ARTICLE_RESPONSE_1),
-                session_attributes.article_candidate['source']['name'],
-                session_attributes.article_candidate['title'],
+                session_attributes.article_candidate.source.name,
+                session_attributes.article_candidate.source.name,
                 random.choice(_FOUND_ARTICLE_RESPONSE_2))
             return DialogueStateResult(DialogueStates.LIST_ARTICLES,
                                        bot_message=bot_message,

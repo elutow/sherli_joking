@@ -1,16 +1,14 @@
 from collections import namedtuple
 from typing import Dict, Any, List, Optional
 
-from newspaper import Article
-
 from .dialogue import DialogueStates
 
 TESTING_URL = '_testing'
 
 SubstateMemory = namedtuple('SubstateMemory', ('state', 'memory'),
                             defaults=(None, None))
-ProcessedArticle = namedtuple(
-    'ProcessedArticle', ('title', 'source', 'text', 'keywords', 'summary'))
+ProcessedArticle = namedtuple('ProcessedArticle',
+                              ('title', 'source', 'text', 'summary'))
 
 
 class SessionAttributes():
@@ -18,8 +16,9 @@ class SessionAttributes():
     """
 
     def __init__(self,
-                 search_topics: Optional[List[str]] = None,
-                 queried_articles: Optional[List[Dict[str, Any]]] = None,
+                 query_include_words: Optional[List[str]] = None,
+                 query_exclude_words: Optional[List[str]] = None,
+                 queried_articles: Optional[List[Any]] = None,
                  current_article: Optional[ProcessedArticle] = None,
                  current_article_index: int = 0,
                  substate_memory: SubstateMemory = SubstateMemory(),
@@ -27,10 +26,14 @@ class SessionAttributes():
                  next_dialogue_state: DialogueStates = DialogueStates.INIT
                  ) -> None:
         """Constructor."""
-        if search_topics:
-            self.search_topics = search_topics
+        if query_include_words:
+            self.query_include_words = query_include_words
         else:
-            self.search_topics = list()
+            self.query_include_words = list()
+        if query_exclude_words:
+            self.query_exclude_words = query_exclude_words
+        else:
+            self.query_exclude_words = list()
         if queried_articles:
             self.queried_articles = queried_articles
         else:
@@ -60,9 +63,11 @@ class SessionAttributes():
         self._current_article_index = value
         self.current_article = None
 
-    def update_search(self, search_topics, queried_articles) -> None:
+    def update_search(self, include_words, exclude_words,
+                      queried_articles) -> None:
         """Updates the search query, clearing out old state info"""
-        self.search_topics = search_topics
+        self.query_include_words = include_words
+        self.query_exclude_words = exclude_words
         self.queried_articles = queried_articles
         self.current_article_index = 0
         self.current_article = None
@@ -70,22 +75,13 @@ class SessionAttributes():
     def update_current_article(self) -> None:
         """Updates current_article with article details"""
         chosen_article = self.queried_articles[self.current_article_index]
-        if chosen_article['url'] == TESTING_URL:
-            # Testing mode; assume current article is already present
-            return
-        #pragma: no cover
-        article_parser = Article(chosen_article['url'])
-        article_parser.download()
-        article_parser.parse()
-        article_parser.nlp()
 
         # Store article details
         self.current_article = ProcessedArticle(
-            title=chosen_article['title'],
-            source=chosen_article['source'],
-            text=article_parser.text,
-            keywords=article_parser.keywords,
-            summary=article_parser.summary,
+            title=chosen_article.title,
+            source=chosen_article.source,
+            text=' '.join(tuple(chosen_article.summary.sentences)[:3]),
+            summary=' '.join(chosen_article.summary.sentences),
         )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -94,7 +90,6 @@ class SessionAttributes():
         else:
             current_article = None
         json_obj: Dict[str, Any] = {
-            'search_topics': self.search_topics,
             'queried_articles': self.queried_articles,
             'current_article': current_article,
             '_current_article_index': self._current_article_index,
@@ -106,7 +101,6 @@ class SessionAttributes():
         return json_obj
 
     def from_dict(self, json_obj: Dict[str, Any]) -> None:
-        self.search_topics = json_obj.get('search_topics', list())
         self.queried_articles = json_obj.get('queried_articles', None)
         if json_obj.get('current_article'):
             self.current_article = ProcessedArticle(

@@ -34,7 +34,7 @@ def initialize():
     global _INITIALIZED, _MODEL_PARAMS, _LOGGER  #pylint: disable=global-statement
     _LOGGER = logging.getLogger(__file__)
     _MODEL_PARAMS = {
-        IntentDataset.NAVIGATE: ('LogisticRegression', 0.75),
+        IntentDataset.NAVIGATE: ('LogisticRegression', 0.85),
     }
     _INITIALIZED = True
 

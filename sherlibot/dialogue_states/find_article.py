@@ -1,24 +1,20 @@
 # -*- coding: utf-8 -*-
 """Logic for finding articles in PICK_ARTICLE state"""
 
-from typing import List, Tuple, Dict, Any, Optional
+from typing import List, Dict, Any, Optional
 import logging
-import string
 import random
-
-import pke
-from newsapi import NewsApiClient
 
 from slowbro.core.bot_message import BotMessage
 from slowbro.core.user_message import UserMessage
 
+from nemo_utils import aylien_wrapper
+
 from ..dialogue import DialogueStates, DialogueStateResult
 from ..session_attributes import SessionAttributes
-from ..utils import get_config_dir
 
 # Modular services and utilities
 _INITIALIZED = False
-_NEWSAPI_CLIENT = None
 _LOGGER = None
 
 # Language generation variations
@@ -37,28 +33,13 @@ _NO_KEYWORD_QUERY_RESPONSE = [
 ]
 
 
-def _extract_topics_from_utterance(utterance: str) -> Tuple[str]:
-    """Extract keyphrases from utterance"""
-    filtered_utterance = ''.join(x for x in utterance if x in string.printable)
-    extractor = pke.unsupervised.TopicRank()
-    extractor.load_document(input=filtered_utterance, language='en')
-    extractor.candidate_selection()
-    if not extractor.candidates:
-        # No candidates found during selection; abort
-        return (filtered_utterance, )
-    extractor.candidate_weighting()
-    keyphrases: List[Tuple[str, float]] = extractor.get_n_best()
-    return tuple(x for x, _ in keyphrases)
-
-
 def initialize() -> None:  #pragma: no cover
     """Initialize one-time modular services and utilities"""
-    global _INITIALIZED, _NEWSAPI_CLIENT, _LOGGER  #pylint: disable=global-statement
+    global _INITIALIZED, _LOGGER  #pylint: disable=global-statement
     if _INITIALIZED:
         return
-    _NEWSAPI_CLIENT = NewsApiClient(
-        api_key=(get_config_dir() / 'newsapi_key').read_text().strip())
     _LOGGER = logging.getLogger(__file__)
+    aylien_wrapper.initialize()
     _INITIALIZED = True
 
 
@@ -88,8 +69,9 @@ def entrypoint(user_message: UserMessage,
                                    bot_message=bot_message)
 
     # Ensure keyphrases are detected
-    keyphrases: Tuple[str] = _extract_topics_from_utterance(user_utterance)
-    if not keyphrases:
+    main_query, include_words, exclude_words = aylien_wrapper.generate_query(
+        user_utterance)
+    if not include_words and not exclude_words:
         bot_message.response_ssml = "{} {}".format(
             random.choice(_NO_KEYWORD_QUERY_RESPONSE),
             random.choice(_REPEAT_QUERY_RESPONSE))
@@ -97,21 +79,20 @@ def entrypoint(user_message: UserMessage,
         return DialogueStateResult(DialogueStates.FIND_ARTICLE,
                                    bot_message=bot_message)
 
-    # Query NewsAPI based on keyphrases
-    query: str = ' AND '.join("'{}'".format(x) for x in keyphrases)
-    _LOGGER.debug(f'Query: {query}')
-    queried_articles: List[Dict[str, Any]] = _NEWSAPI_CLIENT.get_everything(
-        q=query)['articles']
+    # Query Aylien
+    queried_articles: List[Any] = aylien_wrapper.extract_news(
+        main_query, include_words, exclude_words)
     _LOGGER.debug(f'Number of articles: {len(queried_articles)}')
     if not queried_articles:
         bot_message.response_ssml = (
-            "Hmm, I couldn't find any articles on {}. " +
+            "Hmm, I couldn't find any articles on {}, excluding {}. " +
             random.choice(_REPEAT_QUERY_RESPONSE)).format(
-                ' and '.join(keyphrases))
+                ' or '.join(include_words), ' and '.join(exclude_words))
         return DialogueStateResult(DialogueStates.FIND_ARTICLE,
                                    bot_message=bot_message)
 
     # Successfully found articles; store search topics and list of articles
     # Then, let user pick article in LIST_ARTICLES
-    session_attributes.update_search(keyphrases, queried_articles)
+    session_attributes.update_search(include_words, exclude_words,
+                                     queried_articles)
     return DialogueStateResult(DialogueStates.LIST_ARTICLES)
