@@ -59,4 +59,4 @@ Run `devutils/update_requirements.sh` and commit the changes.
 
 All code is licensed under the [MIT License](LICENSE), unless specified otherwise:
 
-* `src/slowbro`: [MIT License](src/slowbro/LICENSE)
+* `slowbro`: [MIT License](src/slowbro/LICENSE)
