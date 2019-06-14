@@ -25,7 +25,10 @@ mkdir config
 # Add News API key
 printf 'API_KEY_HERE' > config/newsapi_key
 
-# TODO: Literally the entire project
+# Start the Alexa Skill server
+# Make sure to use a DynamoDB instance, such as DynamoDB Local (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html)
+# Pass in -h for docs on available arguments
+python3 sherlibot_server.py
 ```
 
 ## Developing
@@ -49,7 +52,8 @@ Run `devutils/update_requirements.sh` and commit the changes.
 
 ## Credits
 
-TODO
+* `slowbro` - From [hao-cheng/ee596\_spr2019\_lab2](https://github.com/hao-cheng/ee596_spr2019_lab2)
+* `know_your_intent.py` - [elutow/know-your-intent-sherli](https://github.com/elutow/know-your-intent-sherli), a fork of [kumar-shridhar/Know-Your-Intent](https://github.com/kumar-shridhar/Know-Your-Intent)
 
 ## Licenses
 
