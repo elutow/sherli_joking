@@ -13,7 +13,7 @@ git clone git@github.com:elutow/sherli_joking.git
 cd sherli_joking
 pip install -r requirements.txt
 
-# Download corpora for pke and newspaper3k
+# Download corpora for newspaper3k
 python3 download_corpora.py
 
 # Symlink intent models

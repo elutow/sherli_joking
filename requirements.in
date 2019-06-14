@@ -1,9 +1,7 @@
 aiohttp
 allennlp
 ask-sdk
-aylien-apiclient
 cachetools
-git+https://github.com/boudinfl/pke.git@215f3c2d9b6768bb0fdb28c30105b6cc7e09946b
 git+https://github.com/elutow/newsapi-python.git@498b1a0550dd1fe1e097a8ba1494a63cd0eadefd
 newspaper3k
 requests

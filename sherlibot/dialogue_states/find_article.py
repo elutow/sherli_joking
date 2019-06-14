@@ -6,7 +6,6 @@ import logging
 import string
 import random
 
-import pke
 from newsapi import NewsApiClient
 
 from slowbro.core.bot_message import BotMessage
@@ -40,15 +39,10 @@ _NO_KEYWORD_QUERY_RESPONSE = [
 def _extract_topics_from_utterance(utterance: str) -> Tuple[str]:
     """Extract keyphrases from utterance"""
     filtered_utterance = ''.join(x for x in utterance if x in string.printable)
-    extractor = pke.unsupervised.TopicRank()
-    extractor.load_document(input=filtered_utterance, language='en')
-    extractor.candidate_selection()
-    if not extractor.candidates:
-        # No candidates found during selection; abort
-        return (filtered_utterance, )
-    extractor.candidate_weighting()
+    # TODO: Use depeendency parser-based keyphrase extraction from aylien branch
+    # Previous pke-based implementation has been removed due to license incompatibility
     keyphrases: List[Tuple[str, float]] = extractor.get_n_best()
-    return tuple(x for x, _ in keyphrases)
+    return tuple(filtered_utterance.split(' '))
 
 
 def initialize() -> None:  #pragma: no cover

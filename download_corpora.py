@@ -14,8 +14,7 @@ NLTK_REQUIRED_CORPORA = [
     'maxent_treebank_pos_tagger',  # Required for NLTKTagger in newspaper3k
     'movie_reviews',  # Required for NaiveBayesAnalyzer in newspaper3k
     'wordnet',  # Required for lemmatization and Wordnet in newspaper3k
-    'universal_target', # Required by pke
-    'stopwords' # Required by newspaper3k and pke
+    'stopwords' # Required by newspaper3k
 ]
 
 def main():
